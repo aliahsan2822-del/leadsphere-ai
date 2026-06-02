@@ -6,11 +6,13 @@ import { useState } from 'react'
 import {
   Users, TrendingUp, DollarSign, Target, Zap, Brain,
   ArrowUpRight, ArrowDownRight, RefreshCw, Filter,
-  Globe, BarChart3, Activity, ChevronRight, Flame, Star
+  Globe, BarChart3, Activity, ChevronRight, Flame, Star,
+  Cpu, MapPin, Sparkles
 } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  RadialBarChart, RadialBar, LineChart, Line
 } from 'recharts'
 import Sidebar from '@/components/Sidebar'
 import { DASHBOARD_STATS, MONTHLY_CHART_DATA, WEEKLY_CHART_DATA, INDUSTRY_DATA, MOCK_LEADS } from '@/lib/mockData'
@@ -427,6 +429,117 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
+          {/* ─── Predictive Analytics ─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6C63FF, #007BFF)' }}>
+                  <Cpu size={14} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white">Predictive Analytics</h3>
+                  <p className="text-xs" style={{ color: '#4a6580' }}>AI conversion forecasts for this month</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                {[
+                  { label: 'Conversion Prob.', value: '23.4%', trend: '+2.1%', color: '#007BFF' },
+                  { label: 'Revenue Forecast', value: '$1.2M', trend: '+18%', color: '#00D4A1' },
+                  { label: 'Avg Deal Size', value: '$48K', trend: '+$4K', color: '#6C63FF' },
+                  { label: 'Customer LTV', value: '$142K', trend: '+12%', color: '#FFA502' },
+                ].map(({ label, value, trend, color }) => (
+                  <div key={label} className="p-3 rounded-xl" style={{ background: `${color}08`, border: `1px solid ${color}20` }}>
+                    <div className="text-lg font-black" style={{ color }}>{value}</div>
+                    <div className="text-xs text-white mt-0.5 font-medium">{label}</div>
+                    <div className="text-xs text-green-400 mt-0.5">{trend}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Forecast line */}
+              <ResponsiveContainer width="100%" height={120}>
+                <LineChart data={[
+                  { m: 'Jan', actual: 95, forecast: null },
+                  { m: 'Feb', actual: 128, forecast: null },
+                  { m: 'Mar', actual: 167, forecast: null },
+                  { m: 'Apr', actual: 203, forecast: null },
+                  { m: 'May', actual: 241, forecast: 241 },
+                  { m: 'Jun', actual: null, forecast: 268 },
+                  { m: 'Jul', actual: null, forecast: 310 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="m" tick={{ fill: '#4a6580', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#4a6580', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: 'rgba(10,22,40,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontSize: 12 }} />
+                  <Line type="monotone" dataKey="actual" name="Actual ($K)" stroke="#007BFF" strokeWidth={2} dot={{ fill: '#007BFF', r: 3 }} connectNulls={false} />
+                  <Line type="monotone" dataKey="forecast" name="Forecast ($K)" stroke="#6C63FF" strokeWidth={2} strokeDasharray="6 3" dot={{ fill: '#6C63FF', r: 3 }} connectNulls />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Opportunity Heatmap */}
+            <div className="rounded-2xl p-5" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <MapPin size={15} style={{ color: '#FF6B9D' }} />
+                <h3 className="font-bold text-sm text-white">Top Opportunity Markets</h3>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { market: 'United States', count: 1240, pct: 95, color: '#007BFF' },
+                  { market: 'United Kingdom', count: 680, pct: 52, color: '#6C63FF' },
+                  { market: 'UAE / Middle East', count: 520, pct: 40, color: '#FFA502' },
+                  { market: 'Singapore / APAC', count: 440, pct: 34, color: '#00D4A1' },
+                  { market: 'Canada', count: 380, pct: 29, color: '#00D4FF' },
+                  { market: 'Australia', count: 310, pct: 24, color: '#FF6B9D' },
+                  { market: 'Germany', count: 280, pct: 21, color: '#6C63FF' },
+                ].map(({ market, count, pct, color }) => (
+                  <div key={market}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-white font-medium">{market}</span>
+                      <span className="text-xs font-bold" style={{ color }}>{count.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1 }}
+                        className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${color}80, ${color})` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Intent Score Leaderboard ─── */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="p-4 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,165,2,0.15)' }}>
+                <Sparkles size={14} style={{ color: '#ffa502' }} />
+              </div>
+              <h3 className="font-bold text-sm text-white">Highest Intent Signals This Week</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+              {[
+                { company: 'NexaTech Solutions', signal: 'Series B + 5 new hires', intent: 94, urgency: 91, conv: 82, color: '#ff4757' },
+                { company: 'Luminary EdTech', signal: '$12M Series A closed', intent: 89, urgency: 86, conv: 75, color: '#ffa502' },
+                { company: 'GreenLeaf Organics', signal: 'Founder seeking tech partner', intent: 85, urgency: 80, conv: 68, color: '#ffa502' },
+              ].map(({ company, signal, intent, urgency, conv, color }, i) => (
+                <div key={company} className="p-4 transition-all hover:bg-white/5"
+                  style={{ borderRight: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                  <div className="font-bold text-sm text-white mb-1">{company}</div>
+                  <div className="flex items-center gap-1.5 text-xs mb-3" style={{ color: '#7a9bb5' }}>
+                    <Zap size={10} style={{ color }} />{signal}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[['Intent', intent, '#007BFF'], ['Urgency', urgency, color], ['Conv%', conv, '#00D4A1']].map(([label, val, c]) => (
+                      <div key={String(label)} className="text-center p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                        <div className="text-sm font-black" style={{ color: String(c) }}>{val}</div>
+                        <div className="text-xs mt-0.5" style={{ color: '#4a6580' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </main>
     </div>

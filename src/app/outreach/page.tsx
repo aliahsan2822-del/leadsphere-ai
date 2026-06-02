@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, Mail, Linkedin, ChevronRight, Zap, Brain, RefreshCw,
   Copy, Check, FileText, MessageSquare, Star, Globe, Users,
-  Sparkles, Plus, ArrowRight, Building2, Target
+  Sparkles, Plus, ArrowRight, Building2, Target, Phone
 } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { MOCK_LEADS, OUTREACH_TEMPLATES } from '@/lib/mockData'
@@ -100,12 +100,14 @@ const OUTPUT_TYPES = [
   { key: 'email', icon: Mail, label: 'Cold Email', color: '#007BFF' },
   { key: 'linkedin', icon: Linkedin, label: 'LinkedIn Message', color: '#0A66C2' },
   { key: 'followup', icon: RefreshCw, label: 'Follow-Up', color: '#6C63FF' },
-  { key: 'proposal', icon: FileText, label: 'Proposal', color: '#00D4A1' },
+  { key: 'proposal', icon: FileText, label: 'Proposal Draft', color: '#00D4A1' },
+  { key: 'discovery', icon: MessageSquare, label: 'Discovery Questions', color: '#FFA502' },
+  { key: 'callscript', icon: Phone, label: 'Call Script', color: '#FF6B9D' },
 ]
 
 export default function OutreachPage() {
   const [selectedLead, setSelectedLead] = useState<Lead>(MOCK_LEADS[0])
-  const [outputType, setOutputType] = useState<'email' | 'linkedin' | 'followup' | 'proposal'>('email')
+  const [outputType, setOutputType] = useState<'email' | 'linkedin' | 'followup' | 'proposal' | 'discovery' | 'callscript'>('email')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generated, setGenerated] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -117,6 +119,8 @@ export default function OutreachPage() {
       case 'linkedin': return generateLinkedIn(selectedLead)
       case 'followup': return generateFollowUp(selectedLead)
       case 'proposal': return generateProposal(selectedLead)
+      case 'discovery': return `DISCOVERY QUESTIONS FOR ${selectedLead.company.toUpperCase()}\nPrepared by LeadSphere AI\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. What are your top digital priorities for ${selectedLead.company} in the next 12 months?\n\n2. How are you currently measuring the performance of your digital channels?\n\n3. Your website scored ${selectedLead.websiteScore}/100 in our analysis — are you aware of the performance gaps?\n\n4. What percentage of new business comes through your digital presence today?\n\n5. ${selectedLead.opportunities.mobile.score > 70 ? `Your mobile traffic is significant — have you considered a dedicated mobile app?` : `What tools are your team using to manage operations and reporting?`}\n\n6. Have you worked with a digital agency before? What worked well, what didn't?\n\n7. Is there a dedicated budget allocated for digital transformation this year?\n\n8. Who else would be involved in evaluating a potential partnership with Fixels Media?\n\n9. What's the biggest risk you see in NOT upgrading your digital infrastructure?\n\n10. If we could solve [their top pain point], what would that be worth to the business?`
+      case 'callscript': return `SALES CALL SCRIPT — ${selectedLead.company.toUpperCase()}\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n\nOPENING (0:00 – 2:00)\n"Hi ${selectedLead.contacts[0]?.name.split(' ')[0] || 'there'}, thanks for taking the time. I'm [Name] from Fixels Media — we're an AI-powered digital agency. The reason I reached out to ${selectedLead.company} specifically is our AI platform flagged some unique opportunities in your digital presence that I believe could directly impact your revenue."\n\nSITUATION (2:00 – 7:00)\n• "How are you currently handling [website/mobile/ERP] at ${selectedLead.company}?"\n• "What are your top growth priorities for the next 12 months?"\n• "Who's involved in technology decisions on your team?"\n\nPROBLEM (7:00 – 12:00)\n"Our AI scanned ${selectedLead.website} and found: ${selectedLead.opportunities.website.insights[0]}. Is that something you've noticed? What impact is that having?"\n\nSOLUTION (12:00 – 17:00)\n"Based on this, we'd approach it in two phases: Phase 1 — ${Object.entries(selectedLead.opportunities).sort((a,b) => b[1].score - a[1].score)[0][1].label}, estimated impact: ${Object.entries(selectedLead.opportunities).sort((a,b) => b[1].score - a[1].score)[0][1].impact}"\n\nCLOSE (17:00 – 20:00)\n"I'd love to put together a tailored proposal for ${selectedLead.company}. Can I have that to you within 48 hours?"\n\n[If yes] → "Great — I'll send it over. Is there anyone else you'd like included?"\n[If hesitant] → "What would need to be true for this to make sense right now?"`
     }
   }
 
@@ -219,7 +223,7 @@ export default function OutreachPage() {
               {/* Output Type */}
               <div className="p-5 rounded-2xl" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 <h3 className="font-bold text-sm text-white mb-3">Output Type</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2">
                   {OUTPUT_TYPES.map(({ key, icon: Icon, label, color }) => (
                     <button key={key} onClick={() => { setOutputType(key as typeof outputType); setGenerated(false) }}
                       className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"

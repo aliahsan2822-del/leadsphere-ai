@@ -7,7 +7,8 @@ import {
   Globe, Users, DollarSign, MapPin, Calendar, TrendingUp, Zap,
   Brain, Target, Smartphone, BarChart3, Package, ChevronRight,
   ExternalLink, Mail, Linkedin, Shield, Star, AlertTriangle,
-  CheckCircle2, XCircle, ArrowUpRight, Building2, Code2, Send
+  CheckCircle2, XCircle, ArrowUpRight, Building2, Code2, Send,
+  Phone, Mic
 } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import { MOCK_LEADS } from '@/lib/mockData'
@@ -103,7 +104,7 @@ function IntelligenceContent() {
   const params = useSearchParams()
   const id = params.get('id')
   const lead = id ? MOCK_LEADS.find(l => l.id === id) : MOCK_LEADS[0]
-  const [activeTab, setActiveTab] = useState<'overview' | 'opportunities' | 'contacts' | 'outreach'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'opportunities' | 'contacts' | 'outreach' | 'discovery' | 'scripts'>('overview')
 
   if (!lead) {
     return (
@@ -123,6 +124,8 @@ function IntelligenceContent() {
     { key: 'overview', label: 'Overview' },
     { key: 'opportunities', label: 'Opportunities' },
     { key: 'contacts', label: 'Contacts' },
+    { key: 'discovery', label: 'Discovery Questions' },
+    { key: 'scripts', label: 'Call Scripts' },
     { key: 'outreach', label: 'AI Outreach' },
   ]
 
@@ -368,6 +371,111 @@ Fixels Media | fixelsmedia.com`}
                 <Link href="/outreach" className="text-xs font-medium ml-auto" style={{ color: '#007BFF' }}>
                   Full Outreach Center <ChevronRight size={11} className="inline" />
                 </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'discovery' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="p-4 rounded-2xl" style={{ background: 'rgba(0,123,255,0.07)', border: '1px solid rgba(0,123,255,0.15)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Brain size={14} style={{ color: '#007BFF' }} />
+                <span className="font-bold text-sm text-white">AI-Generated Discovery Questions</span>
+              </div>
+              <p className="text-xs" style={{ color: '#7a9bb5' }}>Personalized for {lead.company} based on their profile and identified gaps.</p>
+            </div>
+
+            {[
+              { category: 'Business & Goals', color: '#007BFF', questions: [
+                `What are your top 3 digital priorities for ${lead.company} in the next 12 months?`,
+                `How are you currently measuring the ROI of your digital channels?`,
+                `What does success look like for your digital transformation initiative?`,
+                `Who are the key stakeholders involved in technology decisions at ${lead.company}?`,
+              ]},
+              { category: 'Website & Digital Presence', color: '#6C63FF', questions: [
+                `Your current website scores ${lead.websiteScore}/100 on our AI analysis — are you aware of the performance issues?`,
+                `What percentage of your leads or customers come through your website today?`,
+                `Have you had challenges with your website conversion rate or mobile experience?`,
+                `What does your current website redesign or update roadmap look like?`,
+              ]},
+              { category: `${lead.opportunities.mobile.score > 70 ? 'Mobile App Opportunity' : 'Technology Gaps'}`, color: '#FFA502', questions: [
+                `What percentage of your customers interact with you on mobile devices?`,
+                `How are you currently serving customers who prefer mobile-first experiences?`,
+                `What would a dedicated mobile app mean for your customer retention rates?`,
+                `Are any of your competitors offering mobile experiences that you currently can't match?`,
+              ]},
+              { category: 'Budget & Timeline', color: '#00D4A1', questions: [
+                `Do you have an allocated budget for digital transformation this year?`,
+                `What would the ideal timeline look like for your next major digital investment?`,
+                `Have you worked with external development agencies before? What worked, what didn't?`,
+                `What's the biggest blocker to moving forward with a digital upgrade right now?`,
+              ]},
+            ].map(({ category, color, questions }) => (
+              <div key={category} className="p-5 rounded-2xl" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+                  <h4 className="font-bold text-sm text-white">{category}</h4>
+                </div>
+                <div className="space-y-2">
+                  {questions.map((q, i) => (
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span className="text-xs font-bold flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: `${color}20`, color }}>{i + 1}</span>
+                      <span className="text-sm leading-relaxed" style={{ color: '#b0c8e0' }}>{q}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        )}
+
+        {activeTab === 'scripts' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="p-4 rounded-2xl" style={{ background: 'rgba(108,99,255,0.07)', border: '1px solid rgba(108,99,255,0.2)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Zap size={14} style={{ color: '#6C63FF' }} />
+                <span className="font-bold text-sm text-white">Sales Call Script & Meeting Preparation</span>
+              </div>
+              <p className="text-xs" style={{ color: '#7a9bb5' }}>AI-crafted script for your call with {lead.contacts[0]?.name || lead.company}</p>
+            </div>
+
+            {[
+              { title: 'Opening (0:00 – 2:00)', color: '#007BFF', content: `"Hi ${lead.contacts[0]?.name.split(' ')[0] || 'there'}, thanks for taking the time today. I'm [Name] from Fixels Media. We're an AI-powered digital agency, and the reason I reached out specifically to ${lead.company} is that our AI platform flagged some significant digital opportunities unique to your business — particularly around ${lead.opportunities.website.score > 80 ? 'your website performance' : 'your mobile presence'}. I'd love to spend 20 minutes sharing what we found and see if it's relevant to where you're headed."` },
+              { title: 'Situation Questions (2:00 – 7:00)', color: '#6C63FF', content: `• "Can you walk me through how ${lead.company} currently acquires new customers digitally?"\n• "What are the top 2-3 priorities for the business over the next 12 months?"\n• "Who typically makes technology and vendor decisions on the team?"\n• "Have you looked into [${Object.entries(lead.opportunities).sort((a,b) => b[1].score - a[1].score)[0][0]}] solutions before?"` },
+              { title: 'Problem Discovery (7:00 – 12:00)', color: '#FFA502', content: `Mention: "Our AI scanned ${lead.website} and found:\n• ${lead.opportunities.website.insights[0]}\n• ${lead.opportunities.mobile.insights[0]}\n\nAsk: 'Is this something your team has noticed?' and 'What impact is that having on [revenue/customer acquisition/operations]?'\n\nListen for: pain around ${lead.intentSignals[0]?.description || 'growth challenges'}.` },
+              { title: 'Solution Presentation (12:00 – 17:00)', color: '#00D4A1', content: `"Based on what you've shared, we would approach this in two phases:\n\nPhase 1: ${Object.entries(lead.opportunities).sort((a,b) => b[1].score - a[1].score)[0][1].label} — estimated impact: ${Object.entries(lead.opportunities).sort((a,b) => b[1].score - a[1].score)[0][1].impact}\n\nPhase 2: ${Object.entries(lead.opportunities).sort((a,b) => b[1].score - a[1].score)[1][1].label}\n\nWe've done this for similar ${lead.industry} companies and typically see results within 60-90 days."` },
+              { title: 'Close & Next Steps (17:00 – 20:00)', color: '#FF6B9D', content: `"Given everything we've discussed, I'd love to put together a tailored proposal for ${lead.company} that outlines exactly what we'd do, the timeline, and investment. Would you be open to that?\n\n[If yes]: "Great — I'll have that to you within 48 hours. In the meantime, could you loop in [CTO/CMO] for the next call?"\n\n[If hesitant]: "Totally understand. What would need to be true for this to make sense to move forward?"` },
+            ].map(({ title, color, content }) => (
+              <div key={title} className="p-5 rounded-2xl" style={{ background: 'rgba(10,22,40,0.8)', border: `1px solid ${color}25` }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="px-2.5 py-1 rounded-lg text-xs font-bold" style={{ background: `${color}15`, color }}>{title}</div>
+                </div>
+                <div className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#b0c8e0', fontFamily: 'inherit' }}>{content}</div>
+              </div>
+            ))}
+
+            {/* Meeting Prep Checklist */}
+            <div className="p-5 rounded-2xl" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <h4 className="font-bold text-sm text-white mb-3">Pre-Call Checklist</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {[
+                  `Review ${lead.company}'s LinkedIn page for recent updates`,
+                  `Check if ${lead.intentSignals[0]?.description || 'any recent news'}`,
+                  `Prepare website audit screenshot from LeadSphere AI`,
+                  `Review competitor landscape for ${lead.industry}`,
+                  `Know your ask: proposal or discovery call follow-up?`,
+                  `Prepare 2-3 relevant case studies from ${lead.industry}`,
+                  `Check ${lead.contacts[0]?.name}'s LinkedIn for recent activity`,
+                  'Have pricing range ready if asked',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2 text-xs p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(0,212,164,0.15)', border: '1px solid rgba(0,212,164,0.3)' }}>
+                      <CheckCircle2 size={9} style={{ color: '#00D4A1' }} />
+                    </div>
+                    <span style={{ color: '#7a9bb5' }}>{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
