@@ -133,7 +133,7 @@ export default function LandingPage() {
 
           {/* Headline */}
           <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-black leading-none mb-6 tracking-tight">
-            <span className="text-white">Discover the World's</span>
+            <span className="text-white">Discover the World&apos;s</span>
             <br />
             <span className="gradient-text text-glow-blue">Most Valuable</span>
             <br />
@@ -277,7 +277,7 @@ export default function LandingPage() {
               Natural Language AI Search
             </div>
             <h2 className="text-4xl font-black text-white mb-4">Ask in Plain English</h2>
-            <p className="text-lg mb-8" style={{ color: '#7a9bb5' }}>Just type what you're looking for — our AI understands complex business queries</p>
+            <p className="text-lg mb-8" style={{ color: '#7a9bb5' }}>Just type what you&apos;re looking for — our AI understands complex business queries</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
@@ -356,7 +356,7 @@ export default function LandingPage() {
       <section className="relative z-10 py-20 px-6" style={{ background: 'rgba(0,0,0,0.2)' }}>
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-4xl font-black text-white mb-4">Built for Fixels Media's Services</h2>
+            <h2 className="text-4xl font-black text-white mb-4">Built for Fixels Media&apos;s Services</h2>
             <p className="text-lg" style={{ color: '#7a9bb5' }}>LeadSphere AI scores every prospect against each service category</p>
           </motion.div>
           <div className="flex flex-wrap justify-center gap-3">
@@ -398,7 +398,7 @@ export default function LandingPage() {
                 <div className="flex gap-0.5 mb-4">
                   {[...Array(rating)].map((_, j) => <Star key={j} size={14} fill="#ffa502" style={{ color: '#ffa502' }} />)}
                 </div>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: '#7a9bb5' }}>"{quote}"</p>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: '#7a9bb5' }}>&quot;{quote}&quot;</p>
                 <div>
                   <div className="font-semibold text-sm text-white">{name}</div>
                   <div className="text-xs" style={{ color: '#4a6580' }}>{role}</div>
@@ -421,9 +421,9 @@ export default function LandingPage() {
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: 'linear-gradient(135deg, #007BFF, #6C63FF)', boxShadow: '0 10px 40px rgba(0,123,255,0.4)' }}>
             <Globe size={30} className="text-white" />
           </div>
-          <h2 className="text-4xl font-black text-white mb-4">Ready to Discover the World's Best Opportunities?</h2>
+          <h2 className="text-4xl font-black text-white mb-4">Ready to Discover the World&apos;s Best Opportunities?</h2>
           <p className="text-lg mb-8" style={{ color: '#7a9bb5' }}>
-            Join Fixels Media's intelligence-driven approach to business development. LeadSphere AI is ready.
+            Join Fixels Media&apos;s intelligence-driven approach to business development. LeadSphere AI is ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/dashboard"

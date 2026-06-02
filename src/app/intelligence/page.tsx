@@ -235,7 +235,7 @@ function IntelligenceContent() {
                   <span className="font-semibold text-white">Critical Issues Found</span>
                 </div>
                 <p className="text-xs leading-relaxed" style={{ color: '#7a9bb5' }}>
-                  {lead.company}'s website scored {lead.websiteScore}/100 — significantly below the industry average of 72/100. Immediate redesign recommended to prevent further revenue loss.
+                  {lead.company}&apos;s website scored {lead.websiteScore}/100 — significantly below the industry average of 72/100. Immediate redesign recommended to prevent further revenue loss.
                 </p>
               </div>
             </div>
@@ -285,7 +285,7 @@ function IntelligenceContent() {
                 <span className="font-semibold text-white text-sm">Total Addressable Opportunity</span>
               </div>
               <p className="text-xs leading-relaxed" style={{ color: '#7a9bb5' }}>
-                Based on AI analysis of {lead.company}'s digital presence, competitive landscape, and industry benchmarks, Fixels Media has a significant multi-service opportunity with an estimated combined impact exceeding {lead.opportunities.website.impact}.
+                Based on AI analysis of {lead.company}&apos;s digital presence, competitive landscape, and industry benchmarks, Fixels Media has a significant multi-service opportunity with an estimated combined impact exceeding {lead.opportunities.website.impact}.
               </p>
             </div>
             <OpportunitySection lead={lead} />

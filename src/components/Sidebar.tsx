@@ -5,45 +5,50 @@ import { usePathname } from 'next/navigation'
 import {
   Globe, LayoutDashboard, Users, Brain, Send, BarChart3,
   Settings, Zap, Bell, Search, Star, TrendingUp, Target,
-  FileText, Kanban, Shield, Plug, ChevronRight
+  FileText, Kanban, Megaphone, Mail, Linkedin, ChevronRight
 } from 'lucide-react'
+
+const INTEGRATIONS_STATUS = [
+  { key: 'email', icon: Mail, label: 'Email', href: '/integrations', connected: true, color: '#007BFF', badge: '2.8K sent' },
+  { key: 'linkedin', icon: Linkedin, label: 'LinkedIn', href: '/integrations', connected: false, color: '#0A66C2', badge: 'Connect' },
+]
 
 const NAV_GROUPS = [
   {
-    label: 'PLATFORM',
+    label: 'DASHBOARD',
     items: [
       { href: '/dashboard', icon: LayoutDashboard, label: 'Executive Dashboard', badge: null },
-      { href: '/leads', icon: Users, label: 'Lead Intelligence', badge: '4,872' },
-      { href: '/intelligence', icon: Brain, label: 'AI Intelligence', badge: null },
-      { href: '/outreach', icon: Send, label: 'Outreach Center', badge: '12' },
     ],
   },
   {
-    label: 'DISCOVERY',
+    label: 'DISCOVER',
     items: [
-      { href: '/globe', icon: Globe, label: 'Global Map', badge: null },
+      { href: '/leads', icon: Users, label: 'Lead Intelligence', badge: '4,872' },
+      { href: '/intelligence', icon: Brain, label: 'AI Intelligence', badge: null },
+      { href: '/globe', icon: Globe, label: 'Global Market Map', badge: null },
       { href: '/competitors', icon: Target, label: 'Competitor Intel', badge: null },
       { href: '/trends', icon: TrendingUp, label: 'Market Trends', badge: null },
+    ],
+  },
+  {
+    label: 'OUTREACH',
+    items: [
+      { href: '/outreach', icon: Send, label: 'Send Campaigns', badge: '12' },
+      { href: '/campaigns', icon: Megaphone, label: 'Activity & Responses', badge: '3' },
     ],
   },
   {
     label: 'PIPELINE',
     items: [
       { href: '/pipeline', icon: Kanban, label: 'Opportunity Pipeline', badge: null },
-      { href: '/analytics', icon: BarChart3, label: 'Analytics', badge: null },
       { href: '/saved', icon: Star, label: 'Saved Leads', badge: null },
     ],
   },
   {
     label: 'REPORTS',
     items: [
-      { href: '/reports', icon: FileText, label: 'Executive Reports', badge: null },
-    ],
-  },
-  {
-    label: 'SYSTEM',
-    items: [
-      { href: '/settings', icon: Settings, label: 'Settings & Integrations', badge: null },
+      { href: '/analytics', icon: BarChart3, label: 'Analytics', badge: null },
+      { href: '/reports', icon: FileText, label: 'Performance Reports', badge: null },
     ],
   },
 ]
@@ -81,7 +86,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-1 overflow-y-auto space-y-4">
+      <nav className="flex-1 px-3 py-1 overflow-y-auto space-y-3">
         {NAV_GROUPS.map(({ label, items }) => (
           <div key={label}>
             <div className="text-xs font-semibold mb-1.5 px-2" style={{ color: '#4a6580', letterSpacing: '0.8px' }}>{label}</div>
@@ -103,6 +108,42 @@ export default function Sidebar() {
             })}
           </div>
         ))}
+
+        {/* Integrations Section */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5 px-2">
+            <span className="text-xs font-semibold" style={{ color: '#4a6580', letterSpacing: '0.8px' }}>INTEGRATIONS</span>
+            <Link href="/integrations" className="text-xs transition-colors hover:text-white" style={{ color: '#007BFF' }}>
+              <ChevronRight size={11} />
+            </Link>
+          </div>
+          {INTEGRATIONS_STATUS.map(({ key, icon: Icon, label, href, connected, color, badge }) => {
+            const active = pathname === href
+            return (
+              <Link key={key} href={href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all hover:bg-white/5 ${active ? 'nav-active' : ''}`}
+                style={{ color: active ? '#007BFF' : '#7a9bb5' }}>
+                <Icon size={15} style={{ color: connected ? color : '#4a6580' }} />
+                <span className="flex-1">{label}</span>
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-400 animate-pulse' : 'bg-red-500/70'}`} />
+                  <span className="text-xs" style={{ color: connected ? '#00D4A1' : '#ff4757', fontSize: '10px' }}>{badge}</span>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* System */}
+        <div>
+          <div className="text-xs font-semibold mb-1.5 px-2" style={{ color: '#4a6580', letterSpacing: '0.8px' }}>SYSTEM</div>
+          <Link href="/settings"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all hover:bg-white/5 ${pathname === '/settings' ? 'nav-active' : ''}`}
+            style={{ color: pathname === '/settings' ? '#007BFF' : '#7a9bb5' }}>
+            <Settings size={15} className={pathname === '/settings' ? 'text-[#007BFF]' : 'text-[#4a6580]'} />
+            <span className="flex-1">Settings & Integrations</span>
+          </Link>
+        </div>
       </nav>
 
       {/* AI Status */}
@@ -127,9 +168,11 @@ export default function Sidebar() {
             <div className="text-xs font-semibold text-white truncate">Fixels Media</div>
             <div className="text-xs truncate" style={{ color: '#4a6580' }}>Pro Plan</div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="relative cursor-pointer">
             <Bell size={14} style={{ color: '#4a6580' }} />
-            <Link href="/settings"><Settings size={14} style={{ color: '#4a6580' }} /></Link>
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-[#050d1a] flex items-center justify-center">
+              <span className="text-white" style={{ fontSize: '7px', lineHeight: 1 }}>3</span>
+            </div>
           </div>
         </div>
       </div>
