@@ -97,9 +97,11 @@ export default function Sidebar() {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all duration-200 group ${active ? 'nav-active' : 'hover:bg-white/5'}`}
                   style={{ color: active ? '#007BFF' : '#7a9bb5' }}>
                   <Icon size={15} className={active ? 'text-[#007BFF]' : 'text-[#4a6580] group-hover:text-[#7a9bb5]'} />
-                  <span className="flex-1">{itemLabel}</span>
+                  {/* Issue #2 fix: label and badge in separate elements with flex-1 on label — prevents concatenation */}
+                  <span className="flex-1 truncate">{itemLabel}</span>
                   {badge && (
-                    <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: active ? 'rgba(0,123,255,0.15)' : 'rgba(255,255,255,0.06)', color: active ? '#007BFF' : '#4a6580', fontSize: '10px' }}>
+                    <span className="nav-badge flex-shrink-0"
+                      style={{ background: active ? 'rgba(0,123,255,0.15)' : 'rgba(255,255,255,0.06)', color: active ? '#007BFF' : '#4a6580' }}>
                       {badge}
                     </span>
                   )}
@@ -124,10 +126,11 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm font-medium transition-all hover:bg-white/5 ${active ? 'nav-active' : ''}`}
                 style={{ color: active ? '#007BFF' : '#7a9bb5' }}>
                 <Icon size={15} style={{ color: connected ? color : '#4a6580' }} />
-                <span className="flex-1">{label}</span>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-green-400 animate-pulse' : 'bg-red-500/70'}`} />
-                  <span className="text-xs" style={{ color: connected ? '#00D4A1' : '#ff4757', fontSize: '10px' }}>{badge}</span>
+                <span className="flex-1 truncate">{label}</span>
+                {/* Issue #2 fix: connection status clearly separated from label text */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${connected ? 'bg-green-400 animate-pulse' : 'bg-red-500/70'}`} />
+                  <span style={{ color: connected ? '#00D4A1' : '#ff4757', fontSize: '10px', fontWeight: 600 }}>{badge}</span>
                 </div>
               </Link>
             )

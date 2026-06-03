@@ -93,41 +93,61 @@ export default function DashboardPage() {
         <div className="sticky top-0 z-30 flex items-center justify-between px-6 py-4" style={{ background: 'rgba(5,13,26,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <div>
             <h1 className="text-xl font-bold text-white">Executive Dashboard</h1>
-            <p className="text-xs mt-0.5" style={{ color: '#4a6580' }}>Real-time intelligence • Updated 2 minutes ago</p>
+            {/* Issue #8 fix: timestamp with timezone */}
+            <p className="text-xs mt-0.5 timestamp-live" style={{ color: '#4a6580' }}>
+              Real-time intelligence &nbsp;·&nbsp; Updated 2 min ago &nbsp;·&nbsp;
+              <span style={{ color: '#6a8099' }}>UTC {new Date().toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' })}</span>
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all hover:bg-white/5" style={{ color: '#7a9bb5', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <RefreshCw size={13} />Refresh
+            <button aria-label="Refresh dashboard data"
+              className="btn btn-outline btn-md flex items-center gap-2">
+              <RefreshCw size={13} /><span>Refresh</span>
             </button>
+            {/* Issue #9 fix: descriptive Globe View button */}
             <button onClick={() => setGlobeView(!globeView)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+              title={globeView ? 'Switch to chart view' : 'View global opportunities on interactive 3D map'}
+              aria-pressed={globeView}
+              className="btn btn-md flex items-center gap-2"
               style={{ background: globeView ? 'rgba(0,123,255,0.15)' : 'rgba(255,255,255,0.05)', color: globeView ? '#007BFF' : '#7a9bb5', border: `1px solid ${globeView ? 'rgba(0,123,255,0.3)' : 'rgba(255,255,255,0.06)'}` }}>
-              <Globe size={13} />Globe View
+              <Globe size={13} /><span>{globeView ? 'Chart View' : 'Globe View'}</span>
             </button>
           </div>
         </div>
 
         <div className="p-6 space-y-5">
 
-          {/* 4-Column Primary KPIs */}
+          {/* Issue #3 fix: 4-Column Primary KPIs — clear hierarchy: icon+badge / value / label / context */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {MAIN_KPIS.map(({ label, value, change, period, trend, color, icon: Icon, bg, desc }, i) => (
               <motion.div key={label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                 className="p-5 rounded-2xl card-hover"
-                style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: bg }}>
-                    <Icon size={18} style={{ color }} />
+                style={{ background: 'rgba(10,22,40,0.8)', border: `1px solid rgba(255,255,255,0.06)`, borderTop: `2px solid ${color}40` }}>
+                {/* Row 1: icon + trend badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: bg }}>
+                    <Icon size={16} style={{ color }} />
                   </div>
-                  <div className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}
-                    style={{ background: trend === 'up' ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)' }}>
+                  <div className={`flex items-center gap-0.5 text-xs font-bold px-2 py-1 rounded-lg ${trend === 'up' ? '' : ''}`}
+                    style={{
+                      background: trend === 'up' ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+                      color: trend === 'up' ? '#4ade80' : '#f87171',
+                    }}
+                    aria-label={`${trend === 'up' ? 'Increased' : 'Decreased'} by ${change} ${period}`}>
                     {trend === 'up' ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
-                    {change}
+                    <span>{change}</span>
                   </div>
                 </div>
-                <div className="text-2xl font-black text-white mb-0.5">{value}</div>
-                <div className="text-sm font-medium" style={{ color: '#b0c8e0' }}>{label}</div>
-                <div className="text-xs mt-1" style={{ color: '#4a6580' }}>{desc} • {period}</div>
+                {/* Row 2: primary value */}
+                <div className="text-2xl font-black text-white leading-none mb-1">{value}</div>
+                {/* Row 3: label */}
+                <div className="text-sm font-semibold" style={{ color: '#c0d4e8' }}>{label}</div>
+                {/* Row 4: context — desc + period clearly separated */}
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="text-xs" style={{ color: '#4a6580' }}>{desc}</span>
+                  <span style={{ color: '#2a3a4a' }}>·</span>
+                  <span className="text-xs" style={{ color: '#4a6580' }}>{period}</span>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -295,21 +315,39 @@ export default function DashboardPage() {
                     </div>
                     <a href="/leads" className="text-xs" style={{ color: '#007BFF' }}>View all</a>
                   </div>
+                  {/* Issue #5 & #7 fix: consistent button styling + clear urgency badges */}
                   <div className="p-4 space-y-3">
                     {AI_RECS.map((rec, i) => (
-                      <div key={i} className="p-3 rounded-xl transition-all hover:bg-white/5" style={{ background: 'rgba(0,123,255,0.05)', border: '1px solid rgba(0,123,255,0.1)' }}>
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <h4 className="text-xs font-semibold text-white leading-tight flex-1">{rec.title}</h4>
-                          <span className="flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: rec.urgency === 'urgent' ? 'rgba(255,71,87,0.15)' : 'rgba(255,165,2,0.15)', color: rec.urgency === 'urgent' ? '#ff4757' : '#ffa502' }}>
-                            {rec.urgency === 'urgent' ? '🔥 Urgent' : '⚡ High'}
+                      <div key={i} className="p-3 rounded-xl transition-all hover:bg-white/[0.04]"
+                        style={{ background: rec.urgency === 'urgent' ? 'rgba(255,71,87,0.04)' : 'rgba(0,123,255,0.04)', border: `1px solid ${rec.urgency === 'urgent' ? 'rgba(255,71,87,0.12)' : 'rgba(0,123,255,0.1)'}` }}>
+                        <div className="flex items-start gap-2 mb-1.5">
+                          {/* Issue #10 fix: accessible priority badges with text label, not just emoji */}
+                          <span className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${rec.urgency === 'urgent' ? 'urgency-urgent' : 'urgency-high'}`}
+                            aria-label={`Priority: ${rec.urgency === 'urgent' ? 'Urgent' : 'High'}`}>
+                            <span aria-hidden="true">{rec.urgency === 'urgent' ? '🔥' : '⚡'}</span>
+                            {' '}{rec.urgency === 'urgent' ? 'Urgent' : 'High'}
+                          </span>
+                          <span className="text-xs font-bold ml-auto flex-shrink-0 px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,212,255,0.1)', color: '#00D4FF' }}>
+                            AI {rec.score}/100
                           </span>
                         </div>
-                        <p className="text-xs mb-2 leading-relaxed" style={{ color: '#7a9bb5' }}>{rec.description}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold" style={{ color: '#00D4FF' }}>{rec.score}/100</span>
-                          <button className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-all hover:opacity-90" style={{ background: 'rgba(0,123,255,0.15)', color: '#007BFF', border: '1px solid rgba(0,123,255,0.25)' }}>
-                            {rec.action} <ChevronRight size={9} className="inline" />
-                          </button>
+                        <h4 className="text-xs font-semibold text-white leading-snug mb-1.5">{rec.title}</h4>
+                        <p className="text-xs mb-2.5 leading-relaxed" style={{ color: '#7a9bb5' }}>{rec.description}</p>
+                        {/* Issue #7 fix: differentiated button styles per action type */}
+                        <div className="flex items-center gap-2">
+                          {rec.action === 'Send Outreach' ? (
+                            <button className="btn btn-primary btn-sm flex items-center gap-1.5 flex-1">
+                              <Send size={10} /> Send Outreach
+                            </button>
+                          ) : rec.action === 'Analyze' ? (
+                            <button className="btn btn-secondary btn-sm flex items-center gap-1.5 flex-1">
+                              <Brain size={10} /> Analyze
+                            </button>
+                          ) : (
+                            <button className="btn btn-outline btn-sm flex items-center gap-1.5 flex-1">
+                              <ChevronRight size={10} /> View Lead
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -475,43 +513,50 @@ export default function DashboardPage() {
                 </thead>
                 <tbody>
                   {MOCK_LEADS.filter(l => l.scoreCategory === 'hot').slice(0, 5).map(lead => (
-                    <tr key={lead.id} style={{ cursor: 'pointer' }} className="transition-all hover:bg-white/5">
+                    <tr key={lead.id} style={{ cursor: 'pointer' }} className="transition-all">
+                      {/* Issue #1 fix: company avatar in separate .company-avatar div, name in .company-name-text — prevents "Ne NexaTech" concat bug */}
                       <td>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                            style={{ background: 'linear-gradient(135deg, rgba(0,123,255,0.3), rgba(108,99,255,0.3))', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            {lead.company.slice(0, 2)}
+                        <div className="company-cell">
+                          <div className="company-avatar" aria-hidden="true">
+                            {lead.company.slice(0, 2).toUpperCase()}
                           </div>
-                          <div>
-                            <div className="font-semibold text-white text-sm">{lead.company}</div>
-                            <div className="text-xs" style={{ color: '#4a6580' }}>{lead.website}</div>
+                          <div style={{ minWidth: 0 }}>
+                            <div className="company-name-text">{lead.company}</div>
+                            <div className="company-domain">{lead.website}</div>
                           </div>
                         </div>
                       </td>
                       <td style={{ color: '#7a9bb5' }}>{lead.industry}</td>
                       <td style={{ color: '#7a9bb5' }}>{lead.location}</td>
+                      {/* Issue #11 fix: score with /100 unit for clarity */}
                       <td>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <span className="font-black text-sm" style={{ color: lead.score >= 80 ? '#ff4757' : '#ffa502' }}>{lead.score}</span>
+                          <span className="text-xs" style={{ color: '#4a6580' }}>/100</span>
                           <div className="w-1.5 h-1.5 rounded-full" style={{ background: lead.score >= 80 ? '#ff4757' : '#ffa502' }} />
                         </div>
                       </td>
                       <td>
-                        <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,71,87,0.1)', color: '#ff4757' }}>
+                        <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,71,87,0.1)', color: '#ff4757', border: '1px solid rgba(255,71,87,0.15)' }}>
                           {Object.entries(lead.opportunities).sort((a, b) => b[1].score - a[1].score)[0][1].label}
                         </span>
                       </td>
+                      {/* Issue #10 fix: accessible intent signal dots with both title and text labels */}
                       <td>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5" role="list" aria-label="Intent signals">
                           {lead.intentSignals.map((sig, i) => (
-                            <div key={i} className="w-2 h-2 rounded-full" title={sig.description}
-                              style={{ background: sig.strength === 'strong' ? '#ff4757' : sig.strength === 'medium' ? '#ffa502' : '#4a6580' }} />
+                            <div key={i}
+                              className={`signal-dot ${sig.strength === 'strong' ? 'signal-strong' : sig.strength === 'medium' ? 'signal-medium' : 'signal-weak'}`}
+                              title={`${sig.strength} signal: ${sig.description}`}
+                              role="listitem"
+                              aria-label={`${sig.strength} signal: ${sig.description}`}
+                            />
                           ))}
                         </div>
                       </td>
+                      {/* Issue #7 fix: consistent analyze button using .btn system */}
                       <td>
-                        <a href={`/intelligence?id=${lead.id}`} className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all hover:opacity-90"
-                          style={{ background: 'rgba(0,123,255,0.12)', color: '#007BFF', border: '1px solid rgba(0,123,255,0.2)' }}>
+                        <a href={`/intelligence?id=${lead.id}`} className="btn btn-secondary btn-sm">
                           Analyze
                         </a>
                       </td>
@@ -574,23 +619,35 @@ export default function DashboardPage() {
                 <Sparkles size={14} style={{ color: '#ffa502' }} />
                 <h3 className="font-bold text-sm text-white">Highest Intent This Week</h3>
               </div>
-              <div className="space-y-3">
+              {/* Issue #11 fix: metric definitions with units and context */}
+              <div className="flex items-center gap-3 mb-2 px-1">
+                {[{ label: 'Intent', desc: 'Buying intent 0–100' }, { label: 'Urgency', desc: 'Time sensitivity 0–100' }, { label: 'Conv%', desc: 'Est. close probability' }].map(({ label, desc }) => (
+                  <div key={label} className="flex-1 text-center" title={desc}>
+                    <div className="text-xs font-semibold" style={{ color: '#4a6580' }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
                 {[
-                  { company: 'NexaTech Solutions', signal: 'Series B + 5 hires', intent: 94, urgency: 91, color: '#ff4757' },
-                  { company: 'Luminary EdTech', signal: '$12M Series A closed', intent: 89, urgency: 86, color: '#ffa502' },
-                  { company: 'GreenLeaf Organics', signal: 'Founder seeking partner', intent: 85, urgency: 80, color: '#ffa502' },
-                  { company: 'Meridian Healthcare', signal: 'Hiring Dir of Digital', intent: 83, urgency: 78, color: '#ffa502' },
-                ].map(({ company, signal, intent, urgency, color }, i) => (
+                  { company: 'NexaTech Solutions', signal: 'Series B + 5 hires', intent: 94, urgency: 91, conv: 82, color: '#ff4757' },
+                  { company: 'Luminary EdTech', signal: '$12M Series A closed', intent: 89, urgency: 86, conv: 75, color: '#ffa502' },
+                  { company: 'GreenLeaf Organics', signal: 'Founder seeking partner', intent: 85, urgency: 80, conv: 68, color: '#ffa502' },
+                  { company: 'Meridian Healthcare', signal: 'Hiring Dir of Digital', intent: 83, urgency: 78, conv: 64, color: '#ffa502' },
+                ].map(({ company, signal, intent, urgency, conv, color }, i) => (
                   <div key={company} className="flex items-center gap-3 p-2.5 rounded-xl transition-all hover:bg-white/5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 text-white" style={{ background: `${color}20` }}>{i + 1}</div>
+                    <div className="flex-shrink-0" style={{ width: 20 }}>
+                      <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-black text-white" style={{ background: `${color}25` }}>{i + 1}</div>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-white truncate">{company}</div>
-                      <div className="text-xs" style={{ color: '#4a6580' }}>{signal}</div>
+                      <div className="text-xs truncate" style={{ color: '#4a6580' }}>{signal}</div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-sm font-black" style={{ color }}>{intent}</div>
-                      <div className="text-xs" style={{ color: '#4a6580' }}>score</div>
-                    </div>
+                    {/* Issue #11 fix: each score with unit label */}
+                    {[{ val: intent, c: '#007BFF' }, { val: urgency, c: color }, { val: conv, c: '#00D4A1', unit: '%' }].map(({ val, c, unit = '' }, j) => (
+                      <div key={j} className="flex-shrink-0 text-center" style={{ width: 36 }}>
+                        <div className="text-sm font-black" style={{ color: c }}>{val}<span style={{ fontSize: 9, opacity: 0.7 }}>{unit}</span></div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>

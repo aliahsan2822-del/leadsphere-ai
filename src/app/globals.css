@@ -216,14 +216,194 @@ html, body {
   letter-spacing: 0.8px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 .data-table td {
   padding: 14px 16px;
   font-size: 13px;
   border-bottom: 1px solid rgba(255,255,255,0.03);
+  white-space: nowrap;
 }
 .data-table tr:hover td {
-  background: rgba(0, 123, 255, 0.03);
+  background: rgba(0, 123, 255, 0.04);
+}
+
+/* Company cell layout — fixes avatar + name rendering */
+.company-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.company-avatar {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(0,123,255,0.35), rgba(108,99,255,0.35));
+  border: 1px solid rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+.company-name-text {
+  font-weight: 600;
+  color: #fff;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.company-domain {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Button system */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  line-height: 1;
+  white-space: nowrap;
+}
+.btn:focus-visible {
+  outline: 2px solid #007BFF;
+  outline-offset: 2px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+.btn-md { padding: 8px 14px; font-size: 12px; }
+.btn-lg { padding: 12px 20px; font-size: 14px; }
+
+/* Primary — gradient filled */
+.btn-primary {
+  background: linear-gradient(135deg, #007BFF, #6C63FF);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(0,123,255,0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+  transform: translateY(-1px);
+}
+
+/* Secondary — subtle dark bg with blue text */
+.btn-secondary {
+  background: rgba(0,123,255,0.1);
+  color: #007BFF;
+  border-color: rgba(0,123,255,0.25);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(0,123,255,0.18);
+  border-color: rgba(0,123,255,0.4);
+}
+
+/* Outline — transparent bg */
+.btn-outline {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: rgba(255,255,255,0.1);
+}
+.btn-outline:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* Danger */
+.btn-danger {
+  background: rgba(255,71,87,0.12);
+  color: #ff4757;
+  border-color: rgba(255,71,87,0.25);
+}
+.btn-danger:hover:not(:disabled) {
+  background: rgba(255,71,87,0.2);
+}
+
+/* Intent signal dots with tooltips */
+.signal-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  cursor: help;
+  position: relative;
+  flex-shrink: 0;
+}
+.signal-strong { background: #ff4757; box-shadow: 0 0 5px rgba(255,71,87,0.5); }
+.signal-medium { background: #ffa502; box-shadow: 0 0 5px rgba(255,165,2,0.5); }
+.signal-weak   { background: #4a6580; }
+
+/* Navigation badge — ensures visual separation from label text */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* Priority urgency badges */
+.urgency-urgent {
+  background: rgba(255,71,87,0.15);
+  color: #ff4757;
+  border: 1px solid rgba(255,71,87,0.25);
+}
+.urgency-high {
+  background: rgba(255,165,2,0.15);
+  color: #ffa502;
+  border: 1px solid rgba(255,165,2,0.25);
+}
+
+/* Metric score bars */
+.score-bar-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Timestamp */
+.timestamp-live::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00D4A1;
+  animation: pulse 2s ease-in-out infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 @keyframes float {
