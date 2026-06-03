@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Lead } from '@/lib/types'
-import { Globe, Users, TrendingUp, Zap, ChevronRight, MapPin, DollarSign, Building2, ExternalLink, Star, Flame, Thermometer } from 'lucide-react'
+import {
+  Globe, Users, TrendingUp, Zap, ChevronRight, MapPin,
+  DollarSign, Building2, ExternalLink, Star, Flame, Thermometer, Bookmark
+} from 'lucide-react'
 
 interface Props {
   lead: Lead
   view?: 'grid' | 'list'
+  onSaveChange?: () => void
 }
 
 const SCORE_COLORS: Record<string, { bg: string; text: string; icon: React.ElementType; label: string }> = {
@@ -16,12 +20,17 @@ const SCORE_COLORS: Record<string, { bg: string; text: string; icon: React.Eleme
   cold: { bg: 'rgba(30,144,255,0.1)', text: '#1e90ff', icon: Star, label: 'Cold Lead' },
 }
 
+const STORAGE_KEY = 'leadsphere_saved_leads'
+
+function getSavedIds(): string[] {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
+}
+
 function ScoreRing({ score, size = 52 }: { score: number; size?: number }) {
   const r = (size - 8) / 2
   const c = 2 * Math.PI * r
   const progress = (score / 100) * c
   const color = score >= 80 ? '#ff4757' : score >= 60 ? '#ffa502' : '#1e90ff'
-
   return (
     <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
@@ -48,10 +57,26 @@ function OpBar({ label, score, color }: { label: string; score: number; color: s
   )
 }
 
-export default function LeadCard({ lead, view = 'grid' }: Props) {
+export default function LeadCard({ lead, view = 'grid', onSaveChange }: Props) {
   const [expanded, setExpanded] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
   const meta = SCORE_COLORS[lead.scoreCategory]
   const ScoreIcon = meta.icon
+
+  // Read saved state from localStorage on mount
+  useEffect(() => {
+    setIsSaved(getSavedIds().includes(lead.id))
+  }, [lead.id])
+
+  const toggleSave = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const saved = getSavedIds()
+    const next = saved.includes(lead.id) ? saved.filter(id => id !== lead.id) : [...saved, lead.id]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+    setIsSaved(!isSaved)
+    onSaveChange?.()
+  }
 
   if (view === 'list') {
     return (
@@ -90,6 +115,10 @@ export default function LeadCard({ lead, view = 'grid' }: Props) {
           {lead.intentSignals.slice(0, 2).map((sig, i) => (
             <div key={i} className="w-2 h-2 rounded-full" style={{ background: sig.strength === 'strong' ? '#ff4757' : sig.strength === 'medium' ? '#ffa502' : '#4a6580' }} title={sig.description} />
           ))}
+          <button onClick={toggleSave} title={isSaved ? 'Remove from saved' : 'Save lead'}
+            className="p-1.5 rounded-lg transition-all hover:bg-white/10">
+            <Bookmark size={14} fill={isSaved ? '#007BFF' : 'none'} style={{ color: isSaved ? '#007BFF' : '#4a6580' }} />
+          </button>
           <Link href={`/intelligence?id=${lead.id}`}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-90"
             style={{ background: 'rgba(0,123,255,0.15)', color: '#007BFF', border: '1px solid rgba(0,123,255,0.25)' }}>
@@ -106,19 +135,28 @@ export default function LeadCard({ lead, view = 'grid' }: Props) {
       <div className="p-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ background: 'linear-gradient(135deg, rgba(0,123,255,0.3), rgba(108,99,255,0.3))', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, rgba(0,123,255,0.3), rgba(108,99,255,0.3))', border: '1px solid rgba(255,255,255,0.1)' }}>
               {lead.company.slice(0, 2).toUpperCase()}
             </div>
-            <div>
-              <h3 className="font-bold text-sm text-white leading-tight">{lead.company}</h3>
+            <div className="min-w-0">
+              <h3 className="font-bold text-sm text-white leading-tight truncate">{lead.company}</h3>
               <div className="flex items-center gap-1 mt-0.5 text-xs" style={{ color: '#4a6580' }}>
                 <Globe size={10} />
-                <span>{lead.website}</span>
+                <span className="truncate max-w-[120px]">{lead.website}</span>
                 <ExternalLink size={9} />
               </div>
             </div>
           </div>
-          <ScoreRing score={lead.score} />
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Save/bookmark button */}
+            <button onClick={toggleSave} title={isSaved ? 'Saved — click to unsave' : 'Save lead'}
+              className="p-1.5 rounded-lg transition-all hover:bg-white/10"
+              aria-pressed={isSaved}>
+              <Bookmark size={15} fill={isSaved ? '#007BFF' : 'none'} style={{ color: isSaved ? '#007BFF' : '#4a6580' }} />
+            </button>
+            <ScoreRing score={lead.score} />
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -137,20 +175,16 @@ export default function LeadCard({ lead, view = 'grid' }: Props) {
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1.5" style={{ color: '#7a9bb5' }}>
-            <MapPin size={11} style={{ color: '#4a6580' }} />
-            {lead.location}
+            <MapPin size={11} style={{ color: '#4a6580' }} />{lead.location}
           </div>
           <div className="flex items-center gap-1.5" style={{ color: '#7a9bb5' }}>
-            <Users size={11} style={{ color: '#4a6580' }} />
-            {lead.employees}
+            <Users size={11} style={{ color: '#4a6580' }} />{lead.employees}
           </div>
           <div className="flex items-center gap-1.5" style={{ color: '#7a9bb5' }}>
-            <DollarSign size={11} style={{ color: '#4a6580' }} />
-            {lead.revenue}
+            <DollarSign size={11} style={{ color: '#4a6580' }} />{lead.revenue}
           </div>
           <div className="flex items-center gap-1.5" style={{ color: '#7a9bb5' }}>
-            <TrendingUp size={11} style={{ color: '#4a6580' }} />
-            {lead.intentSignals.length} signals
+            <TrendingUp size={11} style={{ color: '#4a6580' }} />{lead.intentSignals.length} signals
           </div>
         </div>
       </div>

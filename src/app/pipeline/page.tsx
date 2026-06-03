@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Kanban, DollarSign, TrendingUp, Users, Plus, ChevronRight,
   Flame, Thermometer, Star, MoreHorizontal, Calendar, Target,
-  ArrowUpRight, Filter, RefreshCw
+  ArrowUpRight, Filter, RefreshCw, X, Check
 } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 
@@ -18,7 +18,7 @@ const PIPELINE_STAGES = [
   { id: 'lost', label: 'Closed Lost', color: '#4a6580', bg: 'rgba(74,101,128,0.1)' },
 ]
 
-const DEALS = [
+const INITIAL_DEALS = [
   { id: 1, company: 'NexaTech Solutions', stage: 'negotiation', value: 180000, score: 94, service: 'Website + Mobile', contact: 'Marcus Reed', daysInStage: 3, probability: 82 },
   { id: 2, company: 'Harborview Hospitality', stage: 'proposal', value: 95000, score: 88, service: 'Website Redesign', contact: 'Victoria Harmon', daysInStage: 7, probability: 65 },
   { id: 3, company: 'GreenLeaf Organics', stage: 'qualified', value: 75000, score: 82, service: 'E-Commerce + App', contact: 'Emma Walsh', daysInStage: 4, probability: 55 },
@@ -33,16 +33,21 @@ const DEALS = [
   { id: 12, company: 'Alpine Finance', stage: 'discovery', value: 78000, score: 73, service: 'Web App', contact: 'Thomas Berg', daysInStage: 1, probability: 28 },
 ]
 
+type Deal = typeof INITIAL_DEALS[0]
+
 function scoreIcon(score: number) {
   if (score >= 80) return <Flame size={11} style={{ color: '#ff4757' }} />
   if (score >= 60) return <Thermometer size={11} style={{ color: '#ffa502' }} />
   return <Star size={11} style={{ color: '#1e90ff' }} />
 }
 
-function DealCard({ deal }: { deal: typeof DEALS[0] }) {
+function DealCard({ deal, onDragStart }: { deal: Deal; onDragStart: (id: number) => void }) {
   const scoreColor = deal.score >= 80 ? '#ff4757' : deal.score >= 60 ? '#ffa502' : '#1e90ff'
   return (
-    <div className="p-3 rounded-xl mb-2 cursor-grab active:cursor-grabbing transition-all hover:translate-y-[-2px]"
+    <div
+      draggable
+      onDragStart={() => onDragStart(deal.id)}
+      className="p-3 rounded-xl mb-2 cursor-grab active:cursor-grabbing transition-all hover:-translate-y-0.5 select-none"
       style={{ background: 'rgba(10,22,40,0.9)', border: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="flex items-start justify-between mb-2">
         <span className="font-semibold text-white text-xs leading-tight flex-1 pr-2">{deal.company}</span>
@@ -81,31 +86,103 @@ function DealCard({ deal }: { deal: typeof DEALS[0] }) {
 }
 
 export default function PipelinePage() {
-  const [view, setView] = useState<'kanban' | 'list'>('kanban')
+  const [deals, setDeals] = useState<Deal[]>(INITIAL_DEALS)
+  const [draggedId, setDraggedId] = useState<number | null>(null)
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null)
+  const [showAddDeal, setShowAddDeal] = useState(false)
+  const [newDeal, setNewDeal] = useState({ company: '', service: '', value: '', contact: '', stage: 'discovery' })
+  const [toast, setToast] = useState<string | null>(null)
 
-  const totalPipeline = DEALS.filter(d => d.stage !== 'won' && d.stage !== 'lost').reduce((s, d) => s + d.value, 0)
-  const totalWon = DEALS.filter(d => d.stage === 'won').reduce((s, d) => s + d.value, 0)
-  const weightedValue = DEALS.filter(d => d.stage !== 'lost').reduce((s, d) => s + d.value * d.probability / 100, 0)
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2500)
+  }
+
+  const handleDragStart = (id: number) => setDraggedId(id)
+
+  const handleDragOver = (e: React.DragEvent, stageId: string) => {
+    e.preventDefault()
+    setDragOverStage(stageId)
+  }
+
+  const handleDragLeave = () => setDragOverStage(null)
+
+  const handleDrop = (e: React.DragEvent, targetStage: string) => {
+    e.preventDefault()
+    setDragOverStage(null)
+    if (draggedId === null) return
+    const deal = deals.find(d => d.id === draggedId)
+    if (!deal || deal.stage === targetStage) { setDraggedId(null); return }
+    setDeals(prev => prev.map(d => d.id === draggedId ? { ...d, stage: targetStage, daysInStage: 0 } : d))
+    const stageName = PIPELINE_STAGES.find(s => s.id === targetStage)?.label
+    showToast(`${deal.company} moved to ${stageName}`)
+    setDraggedId(null)
+  }
+
+  const handleAddDeal = () => {
+    if (!newDeal.company.trim()) return
+    const deal: Deal = {
+      id: Date.now(),
+      company: newDeal.company,
+      service: newDeal.service || 'Web Project',
+      value: parseInt(newDeal.value) || 50000,
+      contact: newDeal.contact || 'TBD',
+      stage: newDeal.stage,
+      score: 70,
+      daysInStage: 0,
+      probability: 30,
+    }
+    setDeals(prev => [...prev, deal])
+    setNewDeal({ company: '', service: '', value: '', contact: '', stage: 'discovery' })
+    setShowAddDeal(false)
+    showToast(`${deal.company} added to pipeline`)
+  }
+
+  const handleRemoveDeal = (id: number) => {
+    const deal = deals.find(d => d.id === id)
+    setDeals(prev => prev.filter(d => d.id !== id))
+    if (deal) showToast(`${deal.company} removed`)
+  }
+
+  const totalPipeline = deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').reduce((s, d) => s + d.value, 0)
+  const totalWon = deals.filter(d => d.stage === 'won').reduce((s, d) => s + d.value, 0)
+  const weightedValue = deals.filter(d => d.stage !== 'lost').reduce((s, d) => s + d.value * d.probability / 100, 0)
+  const winRate = deals.filter(d => d.stage === 'won' || d.stage === 'lost').length > 0
+    ? Math.round(deals.filter(d => d.stage === 'won').length / deals.filter(d => d.stage === 'won' || d.stage === 'lost').length * 100)
+    : 0
 
   return (
     <div className="flex min-h-screen" style={{ background: '#050d1a' }}>
       <Sidebar />
+
+      {/* Toast notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ background: 'rgba(0,212,164,0.9)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+            <Check size={14} /> {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main className="flex-1 overflow-auto">
         {/* Header */}
         <div className="sticky top-0 z-30 px-6 py-4" style={{ background: 'rgba(5,13,26,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-white">Opportunity Pipeline</h1>
-              <p className="text-xs mt-0.5" style={{ color: '#4a6580' }}>CRM workspace — {DEALS.length} active deals</p>
+              <p className="text-xs mt-0.5" style={{ color: '#4a6580' }}>Drag cards between columns to update deal stages · {deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').length} active deals</p>
             </div>
             <div className="flex items-center gap-2">
               <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:bg-white/5 transition-all" style={{ color: '#7a9bb5', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <Filter size={13} /> Filter
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:bg-white/5 transition-all" style={{ color: '#7a9bb5', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <RefreshCw size={13} /> Sync CRM
+              <button onClick={() => setDeals(INITIAL_DEALS)} className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium hover:bg-white/5 transition-all" style={{ color: '#7a9bb5', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <RefreshCw size={13} /> Reset
               </button>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
+              <button onClick={() => setShowAddDeal(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #007BFF, #6C63FF)' }}>
                 <Plus size={13} /> Add Deal
               </button>
@@ -117,10 +194,10 @@ export default function PipelinePage() {
           {/* Pipeline Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Total Pipeline', value: `$${(totalPipeline / 1000).toFixed(0)}K`, sub: `${DEALS.filter(d => d.stage !== 'won' && d.stage !== 'lost').length} active deals`, icon: Target, color: '#007BFF' },
+              { label: 'Total Pipeline', value: `$${(totalPipeline / 1000).toFixed(0)}K`, sub: `${deals.filter(d => d.stage !== 'won' && d.stage !== 'lost').length} active deals`, icon: Target, color: '#007BFF' },
               { label: 'Weighted Value', value: `$${(weightedValue / 1000).toFixed(0)}K`, sub: 'probability-adjusted', icon: TrendingUp, color: '#6C63FF' },
-              { label: 'Closed Won', value: `$${(totalWon / 1000).toFixed(0)}K`, sub: `${DEALS.filter(d => d.stage === 'won').length} deals closed`, icon: ArrowUpRight, color: '#00D4A1' },
-              { label: 'Win Rate', value: '62%', sub: 'last 90 days', icon: DollarSign, color: '#FFA502' },
+              { label: 'Closed Won', value: `$${(totalWon / 1000).toFixed(0)}K`, sub: `${deals.filter(d => d.stage === 'won').length} deals closed`, icon: ArrowUpRight, color: '#00D4A1' },
+              { label: 'Win Rate', value: `${winRate}%`, sub: 'won / (won + lost)', icon: DollarSign, color: '#FFA502' },
             ].map(({ label, value, sub, icon: Icon, color }, i) => (
               <motion.div key={label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
                 className="p-4 rounded-2xl" style={{ background: 'rgba(10,22,40,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -136,14 +213,18 @@ export default function PipelinePage() {
             ))}
           </div>
 
-          {/* Kanban Board */}
+          {/* Kanban Board — drag enabled */}
           <div className="overflow-x-auto pb-4">
             <div className="flex gap-4" style={{ minWidth: `${PIPELINE_STAGES.length * 280}px` }}>
               {PIPELINE_STAGES.map(stage => {
-                const stageDeals = DEALS.filter(d => d.stage === stage.id)
+                const stageDeals = deals.filter(d => d.stage === stage.id)
                 const stageValue = stageDeals.reduce((s, d) => s + d.value, 0)
+                const isOver = dragOverStage === stage.id
                 return (
-                  <div key={stage.id} className="flex-shrink-0" style={{ width: 268 }}>
+                  <div key={stage.id} className="flex-shrink-0" style={{ width: 268 }}
+                    onDragOver={e => handleDragOver(e, stage.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={e => handleDrop(e, stage.id)}>
                     {/* Column header */}
                     <div className="flex items-center justify-between mb-3 px-1">
                       <div className="flex items-center gap-2">
@@ -151,17 +232,22 @@ export default function PipelinePage() {
                         <span className="font-semibold text-sm text-white">{stage.label}</span>
                         <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: stage.bg, color: stage.color }}>{stageDeals.length}</span>
                       </div>
-                      <span className="text-xs font-semibold" style={{ color: '#4a6580' }}>
-                        ${(stageValue / 1000).toFixed(0)}K
-                      </span>
+                      <span className="text-xs font-semibold" style={{ color: '#4a6580' }}>${(stageValue / 1000).toFixed(0)}K</span>
                     </div>
 
-                    {/* Column body */}
-                    <div className="rounded-2xl p-2 min-h-[400px]" style={{ background: 'rgba(10,22,40,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      {stageDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}
-
+                    {/* Drop zone */}
+                    <div className="rounded-2xl p-2 min-h-[400px] transition-all"
+                      style={{
+                        background: isOver ? `${stage.color}08` : 'rgba(10,22,40,0.5)',
+                        border: isOver ? `2px dashed ${stage.color}60` : '1px solid rgba(255,255,255,0.05)',
+                      }}>
+                      {stageDeals.map(deal => (
+                        <DealCard key={deal.id} deal={deal} onDragStart={handleDragStart} />
+                      ))}
                       {stage.id !== 'won' && stage.id !== 'lost' && (
-                        <button className="w-full py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-white/5 flex items-center justify-center gap-1.5" style={{ color: '#4a6580', border: '1px dashed rgba(255,255,255,0.1)', marginTop: 4 }}>
+                        <button onClick={() => { setShowAddDeal(true); setNewDeal(n => ({ ...n, stage: stage.id })) }}
+                          className="w-full py-2.5 rounded-xl text-xs font-medium transition-all hover:bg-white/5 flex items-center justify-center gap-1.5 mt-1"
+                          style={{ color: '#4a6580', border: '1px dashed rgba(255,255,255,0.1)' }}>
                           <Plus size={12} /> Add deal
                         </button>
                       )}
@@ -177,24 +263,20 @@ export default function PipelinePage() {
             <h3 className="font-bold text-white text-sm mb-4">Pipeline Conversion Funnel</h3>
             <div className="space-y-3">
               {PIPELINE_STAGES.filter(s => s.id !== 'lost').map((stage, i) => {
-                const count = DEALS.filter(d => d.stage === stage.id).length
-                const maxCount = Math.max(...PIPELINE_STAGES.map(s => DEALS.filter(d => d.stage === s.id).length))
-                const pct = maxCount > 0 ? (count / DEALS.length) * 100 : 0
+                const count = deals.filter(d => d.stage === stage.id).length
+                const pct = deals.length > 0 ? (count / deals.length) * 100 : 0
                 return (
                   <div key={stage.id} className="flex items-center gap-4">
                     <div className="w-28 text-xs font-medium text-right" style={{ color: '#7a9bb5' }}>{stage.label}</div>
                     <div className="flex-1 h-7 rounded-lg overflow-hidden relative" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: i * 0.1 }}
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
                         className="h-full rounded-lg flex items-center px-3"
                         style={{ background: `linear-gradient(90deg, ${stage.color}40, ${stage.color}80)`, minWidth: count > 0 ? 40 : 0 }}>
                         <span className="text-xs font-bold text-white">{count}</span>
                       </motion.div>
                     </div>
                     <div className="w-16 text-xs font-semibold text-right" style={{ color: stage.color }}>
-                      ${(DEALS.filter(d => d.stage === stage.id).reduce((s, d) => s + d.value, 0) / 1000).toFixed(0)}K
+                      ${(deals.filter(d => d.stage === stage.id).reduce((s, d) => s + d.value, 0) / 1000).toFixed(0)}K
                     </div>
                   </div>
                 )
@@ -203,6 +285,65 @@ export default function PipelinePage() {
           </div>
         </div>
       </main>
+
+      {/* Add Deal Modal */}
+      <AnimatePresence>
+        {showAddDeal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+            onClick={() => setShowAddDeal(false)}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-md p-6 rounded-2xl"
+              style={{ background: 'rgba(10,22,40,0.98)', border: '1px solid rgba(255,255,255,0.1)' }}
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-bold text-lg text-white">Add New Deal</h3>
+                <button onClick={() => setShowAddDeal(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-all">
+                  <X size={16} style={{ color: '#4a6580' }} />
+                </button>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: 'Company Name *', key: 'company', placeholder: 'e.g. Acme Corp' },
+                  { label: 'Service', key: 'service', placeholder: 'e.g. Website Redesign' },
+                  { label: 'Deal Value ($)', key: 'value', placeholder: 'e.g. 75000' },
+                  { label: 'Contact Name', key: 'contact', placeholder: 'e.g. John Smith' },
+                ].map(({ label, key, placeholder }) => (
+                  <div key={key}>
+                    <label className="text-xs font-semibold text-white mb-1 block">{label}</label>
+                    <input
+                      value={newDeal[key as keyof typeof newDeal]}
+                      onChange={e => setNewDeal(n => ({ ...n, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      className="w-full px-3 py-2.5 rounded-xl text-sm text-white outline-none focus:ring-1 focus:ring-blue-500"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label className="text-xs font-semibold text-white mb-1 block">Stage</label>
+                  <select value={newDeal.stage} onChange={e => setNewDeal(n => ({ ...n, stage: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm text-white outline-none"
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    {PIPELINE_STAGES.filter(s => s.id !== 'won' && s.id !== 'lost').map(s => (
+                      <option key={s.id} value={s.id} style={{ background: '#0a1628' }}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button onClick={() => setShowAddDeal(false)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold hover:bg-white/5 transition-all"
+                  style={{ color: '#7a9bb5', border: '1px solid rgba(255,255,255,0.08)' }}>Cancel</button>
+                <button onClick={handleAddDeal} disabled={!newDeal.company.trim()}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 disabled:opacity-40"
+                  style={{ background: 'linear-gradient(135deg, #007BFF, #6C63FF)' }}>Add Deal</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
