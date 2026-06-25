@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basilica of Our Lady of Peace — Yamoussoukro</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #D4A843;
+      --gold-light: #F0C060;
+      --gold-dim: #8A6A20;
+      --gold-glow: rgba(212,168,67,0.25);
+      --dark-bg: #07080F;
+      --dark-surface: #0D0F1A;
+      --dark-card: rgba(15,17,28,0.85);
+      --dark-border: rgba(212,168,67,0.18);
+      --text-primary: #F5F0E8;
+      --text-secondary: #B8A888;
+      --text-muted: #6B6050;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--dark-bg); color: var(--text-primary); font-family: var(--sans); overflow-x: hidden; }
+
+    /* ── NAVBAR ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(7,8,15,0.7); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--dark-border);
+      transition: box-shadow .3s;
+    }
+    nav.scrolled { box-shadow: 0 4px 40px rgba(0,0,0,.6); }
+    .nav-logo { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; color: var(--gold); letter-spacing: .04em; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--text-secondary); text-decoration: none; cursor: pointer; transition: color .2s; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--dark-bg); background: var(--gold); border: none; padding: .5rem 1.3rem; border-radius: 2px; cursor: pointer; transition: background .2s, transform .15s; }
+    .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
+    @media(max-width:700px){ .nav-links { display: none; } }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden;
+    }
+    #hero-canvas { position: absolute; inset: 0; z-index: 0; }
+    .hero-overlay {
+      position: absolute; inset: 0; z-index: 1;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(212,168,67,.06) 0%, transparent 70%),
+                  linear-gradient(to bottom, rgba(7,8,15,.25) 0%, rgba(7,8,15,.65) 100%);
+    }
+    .particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+    .particle { position: absolute; border-radius: 50%; background: var(--gold); animation: floatUp linear infinite; opacity: 0; }
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: .55; }
+      90%  { opacity: .15; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 860px; margin: 0 auto; padding: 8rem 2rem 4rem; text-align: center;
+    }
+    .eyebrow-line {
+      display: inline-flex; align-items: center; gap: .75rem;
+      font-size: .68rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
+    }
+    .eyebrow-line::before, .eyebrow-line::after { content:''; display:block; width:2rem; height:1px; background:var(--gold); opacity:.6; }
+    h1.hero-title {
+      font-family: var(--serif); font-size: clamp(2.8rem,6vw,5.5rem); font-weight: 700; line-height: 1.08; color: var(--text-primary); margin-bottom: .5rem;
+    }
+    h1.hero-title em { font-style: italic; color: var(--gold); }
+    .hero-sub { font-family: var(--serif); font-size: clamp(1rem,2.2vw,1.4rem); font-style: italic; color: var(--text-secondary); margin-bottom: 1.8rem; }
+    .hero-desc { font-size: .97rem; line-height: 1.75; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2.2rem; }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { font-size:.76rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--dark-bg); background:var(--gold); border:none; padding:.82rem 2rem; border-radius:2px; cursor:pointer; transition:all .2s; }
+    .btn-primary:hover { background:var(--gold-light); transform:translateY(-2px); box-shadow:0 8px 30px var(--gold-glow); }
+    .btn-outline { font-size:.76rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:transparent; border:1px solid var(--dark-border); padding:.82rem 2rem; border-radius:2px; cursor:pointer; transition:all .2s; }
+    .btn-outline:hover { border-color:var(--gold); background:var(--gold-glow); transform:translateY(-2px); }
+    .scroll-hint { position:absolute; bottom:2.2rem; left:50%; transform:translateX(-50%); z-index:2; display:flex; flex-direction:column; align-items:center; gap:.4rem; animation: bounce 2s ease-in-out infinite; }
+    .scroll-hint span { font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); }
+    .scroll-line { width:1px; height:2.2rem; background:linear-gradient(to bottom,var(--gold),transparent); }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(7px)} }
+
+    /* ── STATS ── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      border-top: 1px solid var(--dark-border); border-bottom: 1px solid var(--dark-border);
+      background: var(--dark-surface);
+    }
+    .stat { padding: 1.9rem 1.2rem; text-align: center; border-right: 1px solid var(--dark-border); transition: background .2s; cursor: default; }
+    .stat:last-child { border-right: none; }
+    .stat:hover { background: rgba(212,168,67,.04); }
+    .stat-num { font-family: var(--serif); font-size: 2.3rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: .35rem; }
+    .stat-lbl { font-size: .67rem; letter-spacing: .13em; text-transform: uppercase; color: var(--text-muted); }
+    @media(max-width:700px){ .stats-bar{ grid-template-columns:repeat(2,1fr);} .stat:nth-child(2){border-right:none;} }
+
+    /* ── SECTION SHARED ── */
+    section { padding: 5.5rem 2rem; }
+    .inner { max-width: 1180px; margin: 0 auto; }
+    .sec-eye { font-size:.66rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:.9rem; }
+    .sec-title { font-family:var(--serif); font-size:clamp(1.9rem,4vw,3rem); font-weight:700; line-height:1.15; color:var(--text-primary); margin-bottom:1.4rem; }
+    .sec-title em { font-style:italic; color:var(--gold); }
+    .divider { width:3rem; height:2px; background:var(--gold); margin-bottom:1.8rem; opacity:.7; }
+    .divider.center { margin-left:auto; margin-right:auto; }
+
+    /* ── HISTORY ── */
+    #history { background: var(--dark-bg); }
+    .history-grid { display:grid; grid-template-columns:1fr 1fr; gap:4.5rem; align-items:center; }
+    @media(max-width:880px){ .history-grid{ grid-template-columns:1fr; gap:3rem; } }
+    .history-text p { font-size:.96rem; line-height:1.8; color:var(--text-secondary); margin-bottom:1.1rem; }
+    .timeline { display:flex; flex-direction:column; margin-top:2rem; }
+    .tl-item { display:flex; gap:1.4rem; padding-bottom:1.8rem; }
+    .tl-item:last-child { padding-bottom:0; }
+    .tl-left { display:flex; flex-direction:column; align-items:center; flex-shrink:0; width:2.2rem; }
+    .tl-dot { width:.65rem; height:.65rem; border-radius:50%; background:var(--gold); border:2px solid var(--dark-bg); box-shadow:0 0 0 3px var(--gold-glow); margin-top:.22rem; flex-shrink:0; }
+    .tl-line { flex:1; width:1px; background:var(--dark-border); margin-top:.3rem; }
+    .tl-item:last-child .tl-line { display:none; }
+    .tl-year { font-family:var(--serif); font-size:1.05rem; font-weight:700; color:var(--gold); }
+    .tl-event { font-size:.82rem; color:var(--text-secondary); line-height:1.65; margin-top:.1rem; }
+
+    /* ── GALLERY ── */
+    #gallery { background:var(--dark-surface); border-top:1px solid var(--dark-border); border-bottom:1px solid var(--dark-border); }
+    .gallery-hdr { text-align:center; margin-bottom:2.8rem; }
+    .gallery-grid { display:grid; grid-template-columns:2fr 1fr 1fr; grid-template-rows:220px 220px; gap:.85rem; }
+    @media(max-width:880px){ .gallery-grid{ grid-template-columns:1fr 1fr; grid-template-rows:auto; } .gallery-grid .g-item:first-child{grid-row:span 1;} }
+    @media(max-width:540px){ .gallery-grid{ grid-template-columns:1fr; } }
+    .g-item { position:relative; overflow:hidden; border-radius:2px; border:1px solid var(--dark-border); cursor:pointer; background:var(--dark-card); }
+    .g-item:first-child { grid-row:span 2; }
+    .g-scene { width:100%; height:100%; display:block; }
+    .g-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(7,8,15,.82) 0%,transparent 55%); opacity:0; transition:opacity .3s; display:flex; align-items:flex-end; padding:1rem; }
+    .g-item:hover .g-overlay { opacity:1; }
+    .g-caption { font-size:.74rem; color:var(--gold-light); font-weight:500; letter-spacing:.05em; }
+
+    /* ── ARCHITECTURE ── */
+    #architecture { background:var(--dark-bg); }
+    .arch-hdr { text-align:center; margin-bottom:2.8rem; }
+    .arch-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.3rem; }
+    @media(max-width:900px){ .arch-grid{ grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:540px){ .arch-grid{ grid-template-columns:1fr; } }
+    .arch-card {
+      background:var(--dark-card); border:1px solid var(--dark-border); padding:1.8rem; border-radius:2px;
+      position:relative; overflow:hidden; transition:transform .2s,border-color .2s,box-shadow .2s; cursor:default;
+    }
+    .arch-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:0; transition:opacity .3s; }
+    .arch-card:hover { transform:translateY(-4px); border-color:var(--gold-dim); box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px var(--gold-glow); }
+    .arch-card:hover::before { opacity:1; }
+    .arch-icon { width:2.6rem; height:2.6rem; color:var(--gold); margin-bottom:1rem; }
+    .arch-card-title { font-family:var(--serif); font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:.6rem; }
+    .arch-card-text { font-size:.83rem; line-height:1.7; color:var(--text-secondary); }
+    .arch-num { position:absolute; top:1rem; right:1.3rem; font-family:var(--serif); font-size:3.2rem; font-weight:700; color:var(--gold); opacity:.06; line-height:1; user-select:none; }
+
+    /* ── VISIT ── */
+    #visit { background:var(--dark-surface); border-top:1px solid var(--dark-border); }
+    .visit-grid { display:grid; grid-template-columns:1fr 1fr; gap:3.5rem; align-items:start; }
+    @media(max-width:880px){ .visit-grid{ grid-template-columns:1fr; } }
+    .visit-cards { display:flex; flex-direction:column; gap:1.2rem; }
+    .info-card { background:var(--dark-card); border:1px solid var(--dark-border); border-radius:2px; padding:1.3rem; display:flex; gap:.9rem; align-items:flex-start; transition:border-color .2s; }
+    .info-card:hover { border-color:var(--gold-dim); }
+    .info-icon { width:1.8rem; height:1.8rem; color:var(--gold); flex-shrink:0; margin-top:.1rem; }
+    .info-lbl { font-size:.63rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-bottom:.3rem; }
+    .info-val { font-size:.88rem; color:var(--text-primary); line-height:1.55; }
+    .info-note { font-size:.75rem; color:var(--text-muted); margin-top:.2rem; }
+    .map-box { background:var(--dark-card); border:1px solid var(--dark-border); border-radius:2px; overflow:hidden; aspect-ratio:4/3; position:relative; }
+    .map-grid-bg { position:absolute; inset:0; background-image:linear-gradient(rgba(212,168,67,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,168,67,.05) 1px,transparent 1px); background-size:28px 28px; }
+
+    /* ── FOOTER ── */
+    footer { background:var(--dark-surface); border-top:1px solid var(--dark-border); padding:2.8rem 2rem; text-align:center; }
+    .ft-logo { font-family:var(--serif); font-size:1.45rem; font-weight:700; color:var(--gold); margin-bottom:.4rem; }
+    .ft-tag { font-size:.75rem; color:var(--text-muted); letter-spacing:.1em; margin-bottom:1.8rem; }
+    .ft-links { display:flex; gap:1.8rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.8rem; }
+    .ft-links a { font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); text-decoration:none; transition:color .2s; }
+    .ft-links a:hover { color:var(--gold); }
+    .ft-sep { width:3rem; height:1px; background:var(--dark-border); margin:0 auto 1.4rem; }
+    .ft-copy { font-size:.7rem; color:var(--text-muted); }
+
+    /* ping animation for map */
+    @keyframes ping { 0%{r:12;opacity:.8} 100%{r:28;opacity:0} }
+    .ping1 { animation: ping 2s ease-out infinite; }
+    .ping2 { animation: ping 2s ease-out .6s infinite; }
+    @keyframes glowPulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo">Basilica · Yamoussoukro</div>
+  <ul class="nav-links">
+    <li><a href="#history">History</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#visit">Visit</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('visit').scrollIntoView({behavior:'smooth'})">Plan Your Visit</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <div class="eyebrow-line">Yamoussoukro · Côte d'Ivoire</div>
+    <h1 class="hero-title">Basilica of<br><em>Our Lady of Peace</em></h1>
+    <p class="hero-sub">The Largest Church on Earth</p>
+    <p class="hero-desc">
+      Rising 158 metres above the savanna, consecrated by Pope John Paul II in 1990,
+      this monumental basilica is Africa's greatest architectural testament to faith —
+      surpassing St. Peter's Basilica in Rome in total area.
+    </p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('visit').scrollIntoView({behavior:'smooth'})">Plan Your Visit</button>
+      <button class="btn-outline" onclick="document.getElementById('history').scrollIntoView({behavior:'smooth'})">Discover the Story</button>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" data-target="158" data-suffix="m">0m</div><div class="stat-lbl">Height — Tallest Dome in Africa</div></div>
+  <div class="stat"><div class="stat-num" data-target="30000" data-suffix="+">0+</div><div class="stat-lbl">Capacity — Pilgrims & Visitors</div></div>
+  <div class="stat"><div class="stat-num" data-target="1990" data-suffix="">0</div><div class="stat-lbl">Consecrated by Pope John Paul II</div></div>
+  <div class="stat"><div class="stat-num" data-target="322" data-suffix="k m²">0k m²</div><div class="stat-lbl">Total Ground Area</div></div>
+</div>
+
+<!-- HISTORY -->
+<section id="history">
+  <div class="inner">
+    <div class="history-grid">
+      <div class="history-text">
+        <p class="sec-eye">A Monument of Faith</p>
+        <h2 class="sec-title">Built to <em>Endure</em><br>for Centuries</h2>
+        <div class="divider"></div>
+        <p>At the heart of Yamoussoukro — the political capital of Côte d'Ivoire — stands an extraordinary vision made stone and glass. The Basilica of Our Lady of Peace was gifted to the Roman Catholic Church by President Félix Houphouët-Boigny, the founding father of modern Côte d'Ivoire.</p>
+        <p>Designed by Lebanese architect Pierre Fakhoury, the basilica draws clear inspiration from St. Peter's Basilica in Rome — yet surpasses it in total area at 322,000 m². The complex seats 7,000 inside and can accommodate a further 300,000 in its vast esplanade.</p>
+        <p>Its 158-metre dome — the tallest in the world at the time of completion — is crowned by a golden cross visible for miles across the flat savanna. The interior is lit by 7,400 m² of stained glass imported from France.</p>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div><div><div class="tl-year">1985</div><div class="tl-event">Construction begins under the patronage of President Félix Houphouët-Boigny, who funded the basilica personally.</div></div></div>
+          <div class="tl-item"><div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div><div><div class="tl-year">1989</div><div class="tl-event">Main structure completed — a 30,000-tonne dome clad in Carrara marble rises above the Ivorian savanna.</div></div></div>
+          <div class="tl-item"><div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div><div><div class="tl-year">1990</div><div class="tl-event">Pope John Paul II consecrates the Basilica on September 10 during his apostolic journey to Côte d'Ivoire.</div></div></div>
+          <div class="tl-item"><div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div><div><div class="tl-year">1993</div><div class="tl-event">Listed on the UNESCO World Heritage Tentative List as an exceptional example of modern religious architecture.</div></div></div>
+          <div class="tl-item"><div class="tl-left"><div class="tl-dot"></div></div><div><div class="tl-year">Today</div><div class="tl-event">Welcomes over 300,000 pilgrims and visitors each year. Africa's most visited religious monument.</div></div></div>
+        </div>
+      </div>
+
+      <!-- SVG Church Illustration -->
+      <div style="position:relative; width:100%; padding-bottom:100%;">
+        <svg viewBox="0 0 400 450" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 0 40px rgba(212,168,67,.18));">
+          <defs>
+            <radialGradient id="hglow" cx="50%" cy="60%" r="50%"><stop offset="0%" stop-color="#D4A843" stop-opacity=".14"/><stop offset="100%" stop-color="#D4A843" stop-opacity="0"/></radialGradient>
+            <linearGradient id="hwall" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1e1a10"/><stop offset="50%" stop-color="#2e2818"/><stop offset="100%" stop-color="#1a1608"/></linearGradient>
+            <linearGradient id="hdome" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D4A843" stop-opacity=".95"/><stop offset="100%" stop-color="#8A6A20" stop-opacity=".75"/></linearGradient>
+            <linearGradient id="hwhite" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5f0e8"/><stop offset="100%" stop-color="#c8c0b0"/></linearGradient>
+          </defs>
+          <ellipse cx="200" cy="430" rx="160" ry="14" fill="url(#hglow)"/>
+          <rect x="70" y="394" width="260" height="10" rx="1" fill="rgba(245,240,232,.12)"/>
+          <rect x="80" y="386" width="240" height="10" rx="1" fill="rgba(245,240,232,.10)"/>
+          <rect x="90" y="378" width="220" height="10" rx="1" fill="rgba(245,240,232,.08)"/>
+          <rect x="110" y="290" width="180" height="94" fill="url(#hwall)"/>
+          <rect x="110" y="290" width="180" height="94" fill="none" stroke="rgba(212,168,67,.3)" stroke-width="1"/>
+          <rect x="172" y="334" width="56" height="50" rx="28 28 0 0" fill="#0d0b07"/>
+          <rect x="172" y="334" width="56" height="50" rx="28 28 0 0" fill="none" stroke="rgba(212,168,67,.5)" stroke-width="1"/>
+          <!-- Columns -->
+          <rect x="96" y="305" width="6" height="72" rx="3" fill="url(#hwhite)" opacity=".28"/>
+          <rect x="112" y="305" width="6" height="72" rx="3" fill="url(#hwhite)" opacity=".22"/>
+          <rect x="286" y="305" width="6" height="72" rx="3" fill="url(#hwhite)" opacity=".22"/>
+          <rect x="298" y="305" width="6" height="72" rx="3" fill="url(#hwhite)" opacity=".28"/>
+          <!-- Drum -->
+          <rect x="148" y="258" width="104" height="36" rx="52 52 0 0" fill="url(#hwhite)" opacity=".9"/>
+          <rect x="148" y="258" width="104" height="36" rx="52 52 0 0" fill="none" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <!-- Dome -->
+          <path d="M144,258 Q144,174 200,162 Q256,174 256,258 Z" fill="url(#hdome)"/>
+          <!-- Ribs -->
+          <path d="M200,258 Q225,220 200,162" stroke="rgba(212,168,67,.4)" stroke-width="1" fill="none"/>
+          <path d="M200,258 Q175,220 200,162" stroke="rgba(212,168,67,.4)" stroke-width="1" fill="none"/>
+          <path d="M144,258 Q168,220 200,162" stroke="rgba(212,168,67,.3)" stroke-width="1" fill="none"/>
+          <path d="M256,258 Q232,220 200,162" stroke="rgba(212,168,67,.3)" stroke-width="1" fill="none"/>
+          <!-- Lantern -->
+          <rect x="190" y="146" width="20" height="20" rx="10 10 0 0" fill="url(#hwhite)" opacity=".9"/>
+          <!-- Cross -->
+          <rect x="198" y="118" width="4" height="30" rx="2" fill="#D4A843"/>
+          <rect x="188" y="128" width="24" height="4" rx="2" fill="#D4A843"/>
+          <!-- Bell towers -->
+          <rect x="103" y="274" width="30" height="90" rx="2" fill="url(#hwhite)" opacity=".8"/>
+          <path d="M102,274 L134,274 L118,244 Z" fill="#D4A843" opacity=".8"/>
+          <rect x="113" y="294" width="10" height="18" rx="5 5 0 0" fill="rgba(212,168,67,.3)"/>
+          <rect x="267" y="274" width="30" height="90" rx="2" fill="url(#hwhite)" opacity=".8"/>
+          <path d="M266,274 L298,274 L282,244 Z" fill="#D4A843" opacity=".8"/>
+          <rect x="277" y="294" width="10" height="18" rx="5 5 0 0" fill="rgba(212,168,67,.3)"/>
+          <!-- Windows -->
+          <rect x="130" y="304" width="20" height="30" rx="10 10 0 0" fill="rgba(212,168,67,.18)" stroke="rgba(212,168,67,.35)" stroke-width="1"/>
+          <rect x="190" y="304" width="20" height="30" rx="10 10 0 0" fill="rgba(212,168,67,.18)" stroke="rgba(212,168,67,.35)" stroke-width="1"/>
+          <rect x="250" y="304" width="20" height="30" rx="10 10 0 0" fill="rgba(212,168,67,.18)" stroke="rgba(212,168,67,.35)" stroke-width="1"/>
+          <!-- Glow -->
+          <ellipse cx="200" cy="290" rx="90" ry="6" fill="rgba(212,168,67,.08)" style="animation:glowPulse 3s ease-in-out infinite"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="inner">
+    <div class="gallery-hdr">
+      <p class="sec-eye">Visual Journey</p>
+      <h2 class="sec-title">The <em>Basilica</em> in Images</h2>
+      <div class="divider center"></div>
+    </div>
+    <div class="gallery-grid">
+
+      <!-- 1: Aerial Night -->
+      <div class="g-item">
+        <svg class="g-scene" viewBox="0 0 400 440" preserveAspectRatio="xMidYMid slice">
+          <defs><radialGradient id="sky1" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#1a2535"/><stop offset="100%" stop-color="#07080F"/></radialGradient></defs>
+          <rect width="400" height="440" fill="url(#sky1)"/>
+          <circle cx="320" cy="45" r="20" fill="#f0e8d0" opacity=".9"/>
+          <circle cx="332" cy="39" r="17" fill="#1a2535" opacity=".95"/>
+          <circle cx="80" cy="22" r="1.2" fill="white" opacity=".7"/><circle cx="140" cy="15" r=".8" fill="white" opacity=".6"/><circle cx="200" cy="30" r="1" fill="white" opacity=".8"/><circle cx="260" cy="18" r="1.2" fill="white" opacity=".5"/><circle cx="350" cy="35" r=".7" fill="white" opacity=".6"/><circle cx="50" cy="55" r="1" fill="white" opacity=".7"/><circle cx="170" cy="10" r=".6" fill="white" opacity=".4"/><circle cx="300" cy="60" r=".9" fill="white" opacity=".5"/>
+          <rect y="300" width="400" height="140" fill="#0a0d08"/>
+          <ellipse cx="200" cy="330" rx="85" ry="58" fill="rgba(212,168,67,.1)" stroke="rgba(212,168,67,.25)" stroke-width="1"/>
+          <ellipse cx="200" cy="330" rx="30" ry="24" fill="rgba(212,168,67,.28)"/>
+          <circle cx="200" cy="328" r="9" fill="#D4A843"/>
+          <line x1="175" y1="388" x2="185" y2="352" stroke="rgba(212,168,67,.18)" stroke-width="1"/>
+          <line x1="200" y1="395" x2="200" y2="354" stroke="rgba(212,168,67,.18)" stroke-width="1"/>
+          <line x1="225" y1="388" x2="215" y2="352" stroke="rgba(212,168,67,.18)" stroke-width="1"/>
+          <circle cx="110" cy="298" r="7" fill="rgba(20,40,15,.85)"/><circle cx="135" cy="295" r="6" fill="rgba(20,40,15,.85)"/><circle cx="160" cy="298" r="7" fill="rgba(20,40,15,.85)"/><circle cx="240" cy="298" r="7" fill="rgba(20,40,15,.85)"/><circle cx="265" cy="295" r="6" fill="rgba(20,40,15,.85)"/><circle cx="290" cy="298" r="7" fill="rgba(20,40,15,.85)"/>
+        </svg>
+        <div class="g-overlay"><span class="g-caption">Aerial View — The Full Complex</span></div>
+      </div>
+
+      <!-- 2: Dome at dusk -->
+      <div class="g-item">
+        <svg class="g-scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a0a05"/><stop offset="40%" stop-color="#3d1a08"/><stop offset="100%" stop-color="#0d0a07"/></linearGradient></defs>
+          <rect width="400" height="300" fill="url(#dusk)"/>
+          <circle cx="200" cy="290" r="140" fill="rgba(212,100,20,.1)"/>
+          <circle cx="200" cy="290" r="70" fill="rgba(212,140,20,.15)"/>
+          <path d="M135,210 Q135,120 200,104 Q265,120 265,210 Z" fill="#D4A843" opacity=".9"/>
+          <rect x="148" y="206" width="104" height="22" fill="#D4A843" opacity=".7"/>
+          <rect x="196" y="78" width="8" height="30" rx="4" fill="#D4A843"/>
+          <rect x="184" y="90" width="32" height="5" rx="2" fill="#D4A843"/>
+          <ellipse cx="200" cy="210" rx="70" ry="9" fill="rgba(212,168,67,.28)"/>
+          <rect x="108" y="232" width="184" height="68" fill="#1a1206" opacity=".95"/>
+        </svg>
+        <div class="g-overlay"><span class="g-caption">The Golden Dome at Dusk</span></div>
+      </div>
+
+      <!-- 3: Esplanade -->
+      <div class="g-item">
+        <svg class="g-scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0f1a"/><stop offset="100%" stop-color="#15202e"/></linearGradient></defs>
+          <rect width="400" height="300" fill="url(#sky3)"/>
+          <rect y="165" width="400" height="135" fill="#1a1812"/>
+          <line x1="200" y1="165" x2="140" y2="300" stroke="rgba(212,168,67,.1)" stroke-width="1"/>
+          <line x1="200" y1="165" x2="260" y2="300" stroke="rgba(212,168,67,.1)" stroke-width="1"/>
+          <line x1="200" y1="165" x2="60" y2="300" stroke="rgba(212,168,67,.07)" stroke-width="1"/>
+          <line x1="200" y1="165" x2="340" y2="300" stroke="rgba(212,168,67,.07)" stroke-width="1"/>
+          <rect x="145" y="72" width="110" height="96" fill="#1e1a10"/>
+          <path d="M148,72 Q200,22 252,72 Z" fill="rgba(212,168,67,.6)"/>
+          <circle cx="200" cy="47" r="22" fill="rgba(212,168,67,.48)"/>
+          <line x1="75" y1="165" x2="75" y2="235" stroke="rgba(212,168,67,.4)" stroke-width="2"/>
+          <circle cx="75" cy="162" r="5" fill="#D4A843" opacity=".8"/>
+          <circle cx="75" cy="162" r="13" fill="rgba(212,168,67,.1)"/>
+          <line x1="165" y1="165" x2="165" y2="235" stroke="rgba(212,168,67,.4)" stroke-width="2"/>
+          <circle cx="165" cy="162" r="5" fill="#D4A843" opacity=".8"/>
+          <circle cx="165" cy="162" r="13" fill="rgba(212,168,67,.1)"/>
+          <line x1="235" y1="165" x2="235" y2="235" stroke="rgba(212,168,67,.4)" stroke-width="2"/>
+          <circle cx="235" cy="162" r="5" fill="#D4A843" opacity=".8"/>
+          <circle cx="325" cy="162" r="5" fill="#D4A843" opacity=".8"/>
+          <line x1="325" y1="165" x2="325" y2="235" stroke="rgba(212,168,67,.4)" stroke-width="2"/>
+        </svg>
+        <div class="g-overlay"><span class="g-caption">Grand Esplanade</span></div>
+      </div>
+
+      <!-- 4: Interior -->
+      <div class="g-item">
+        <svg class="g-scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+          <defs><radialGradient id="int4" cx="50%" cy="20%" r="70%"><stop offset="0%" stop-color="#2a1a05"/><stop offset="100%" stop-color="#070507"/></radialGradient></defs>
+          <rect width="400" height="300" fill="url(#int4)"/>
+          <path d="M0,300 Q50,50 100,300" stroke="rgba(212,168,67,.2)" stroke-width="1" fill="none"/>
+          <path d="M100,300 Q150,50 200,300" stroke="rgba(212,168,67,.2)" stroke-width="1" fill="none"/>
+          <path d="M200,300 Q250,50 300,300" stroke="rgba(212,168,67,.2)" stroke-width="1" fill="none"/>
+          <path d="M300,300 Q350,50 400,300" stroke="rgba(212,168,67,.2)" stroke-width="1" fill="none"/>
+          <rect x="40" y="28" width="44" height="108" rx="22 22 0 0" fill="rgba(200,130,50,.22)" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="40" y1="82" x2="84" y2="82" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="62" y1="28" x2="62" y2="136" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <rect x="178" y="28" width="44" height="108" rx="22 22 0 0" fill="rgba(180,100,200,.22)" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="178" y1="82" x2="222" y2="82" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="200" y1="28" x2="200" y2="136" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <rect x="316" y="28" width="44" height="108" rx="22 22 0 0" fill="rgba(100,180,200,.22)" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="316" y1="82" x2="360" y2="82" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <line x1="338" y1="28" x2="338" y2="136" stroke="rgba(212,168,67,.4)" stroke-width="1"/>
+          <ellipse cx="200" cy="285" rx="110" ry="18" fill="rgba(212,168,67,.12)"/>
+          <rect x="178" y="248" width="44" height="37" fill="rgba(30,24,10,.9)"/>
+          <circle cx="200" cy="244" r="6" fill="#D4A843"/>
+        </svg>
+        <div class="g-overlay"><span class="g-caption">Interior Nave &amp; Stained Glass</span></div>
+      </div>
+
+      <!-- 5: Colonnade -->
+      <div class="g-item">
+        <svg class="g-scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="col5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0e15"/><stop offset="100%" stop-color="#07080d"/></linearGradient></defs>
+          <rect width="400" height="300" fill="url(#col5)"/>
+          <rect x="40" y="265" width="24" height="240" rx="4" fill="rgba(245,240,232,.18)"/>
+          <rect x="34" y="255" width="36" height="12" rx="2" fill="rgba(212,168,67,.5)"/>
+          <line x1="44" y1="255" x2="44" y2="265" stroke="rgba(212,168,67,.14)" stroke-width="1"/>
+          <line x1="52" y1="255" x2="52" y2="265" stroke="rgba(212,168,67,.14)" stroke-width="1"/>
+          <line x1="60" y1="255" x2="60" y2="265" stroke="rgba(212,168,67,.14)" stroke-width="1"/>
+          <rect x="120" y="272" width="20" height="200" rx="3" fill="rgba(245,240,232,.14)"/>
+          <rect x="115" y="263" width="30" height="11" rx="2" fill="rgba(212,168,67,.4)"/>
+          <rect x="200" y="278" width="16" height="160" rx="3" fill="rgba(245,240,232,.10)"/>
+          <rect x="196" y="270" width="24" height="10" rx="2" fill="rgba(212,168,67,.3)"/>
+          <rect x="268" y="281" width="12" height="130" rx="2" fill="rgba(245,240,232,.07)"/>
+          <rect x="264" y="274" width="20" height="9" rx="2" fill="rgba(212,168,67,.22)"/>
+          <rect x="326" y="283" width="10" height="110" rx="2" fill="rgba(245,240,232,.05)"/>
+          <rect x="322" y="276" width="18" height="8" rx="2" fill="rgba(212,168,67,.16)"/>
+          <rect y="282" width="400" height="18" fill="rgba(212,168,67,.04)"/>
+        </svg>
+        <div class="g-overlay"><span class="g-caption">Columns &amp; Colonnade</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="inner">
+    <div class="arch-hdr">
+      <p class="sec-eye">Architectural Marvel</p>
+      <h2 class="sec-title">Six Wonders of <em>Design &amp; Engineering</em></h2>
+      <div class="divider center"></div>
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-num">01</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C7.03 2 3 6.03 3 11v1h18v-1c0-4.97-4.03-9-9-9z"/><rect x="2" y="12" width="20" height="2" rx="1"/><rect x="10" y="14" width="4" height="8" rx="1"/></svg>
+        <h3 class="arch-card-title">The Great Dome</h3>
+        <p class="arch-card-text">158 metres high — the tallest dome in the world at completion. Clad in travertine marble. The interior soars 60 metres above the nave floor.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">02</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="7 7 2 2"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><circle cx="12" cy="8" r="2"/></svg>
+        <h3 class="arch-card-title">Stained Glass</h3>
+        <p class="arch-card-text">7,400 m² of stained glass imported from France, designed by master glazier Gabriel Loire. Each panel narrates a biblical story in 36 colours.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">03</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12,2 22,20 2,20"/><line x1="12" y1="2" x2="12" y2="20"/><line x1="7" y1="11" x2="17" y2="11"/></svg>
+        <h3 class="arch-card-title">Marble &amp; Stone</h3>
+        <p class="arch-card-text">Italian Carrara marble covers every floor, pillar and surface. Over 200,000 tonnes of imported stone were used in construction.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">04</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="3" x2="4" y2="19"/><line x1="9" y1="3" x2="9" y2="19"/><line x1="14" y1="3" x2="14" y2="19"/><line x1="19" y1="3" x2="19" y2="19"/><line x1="2" y1="19" x2="22" y2="19"/><line x1="2" y1="5" x2="22" y2="5"/></svg>
+        <h3 class="arch-card-title">Colonnaded Esplanade</h3>
+        <p class="arch-card-text">A vast open esplanade of 322,000 m² encircles the basilica, flanked by a 128-column curved colonnade echoing Bernini's design in Rome.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">05</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>
+        <h3 class="arch-card-title">Air Conditioning</h3>
+        <p class="arch-card-text">One of the most sophisticated climate control systems in Africa. The entire 30,000-seat interior is maintained at a constant 22°C.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">06</div>
+        <svg class="arch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 19V8a6 6 0 0 1 12 0v11"/><path d="M3 19h18"/><path d="M10 22a2 2 0 0 0 4 0"/></svg>
+        <h3 class="arch-card-title">Four Bell Towers</h3>
+        <p class="arch-card-text">Four symmetrical bell towers stand 90 metres tall at each corner. Each contains bronze bells cast in France, rung for liturgical ceremonies.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VISIT -->
+<section id="visit">
+  <div class="inner">
+    <div class="visit-grid">
+      <div>
+        <p class="sec-eye">Plan Your Pilgrimage</p>
+        <h2 class="sec-title">Come &amp; <em>Experience</em><br>the Sacred</h2>
+        <div class="divider"></div>
+        <p style="font-size:.94rem;line-height:1.8;color:var(--text-secondary);margin-bottom:2rem;">Whether you come as a pilgrim, an architecture enthusiast, or a curious traveller, the Basilica of Our Lady of Peace will leave an indelible mark on your soul.</p>
+        <div class="visit-cards">
+          <div class="info-card">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <div><div class="info-lbl">Location</div><div class="info-val">Yamoussoukro, Côte d'Ivoire</div><div class="info-note">240 km north of Abidjan via the A3 highway</div></div>
+          </div>
+          <div class="info-card">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <div><div class="info-lbl">Opening Hours</div><div class="info-val">Daily 08:00 – 18:00</div><div class="info-note">Mass: Mon–Sat 07:30 · Sunday 09:00 &amp; 11:00</div></div>
+          </div>
+          <div class="info-card">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            <div><div class="info-lbl">Admission</div><div class="info-val">Free Entry</div><div class="info-note">Guided tours available · Modest attire required</div></div>
+          </div>
+          <div class="info-card">
+            <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+            <div><div class="info-lbl">Best Time to Visit</div><div class="info-val">November – March</div><div class="info-note">Dry season · Clear skies · Lower humidity</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="map-box">
+        <div class="map-grid-bg"></div>
+        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+          <defs><radialGradient id="mapGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#D4A843" stop-opacity=".18"/><stop offset="100%" stop-color="#D4A843" stop-opacity="0"/></radialGradient></defs>
+          <ellipse cx="200" cy="150" rx="160" ry="130" fill="url(#mapGlow)"/>
+          <!-- Africa outline simplified -->
+          <path d="M180,20 L210,18 L230,30 L240,55 L235,80 L245,100 L250,130 L245,160 L235,185 L220,210 L200,230 L185,240 L170,225 L155,205 L148,180 L150,155 L145,130 L148,105 L155,80 L158,55 L165,30 Z" fill="rgba(212,168,67,.07)" stroke="rgba(212,168,67,.22)" stroke-width="1.5"/>
+          <!-- Ivory Coast -->
+          <path d="M165,110 L175,105 L190,108 L200,115 L202,130 L195,140 L180,145 L168,138 L162,125 Z" fill="rgba(212,168,67,.18)" stroke="rgba(212,168,67,.45)" stroke-width="1"/>
+          <!-- Pin -->
+          <circle cx="183" cy="125" r="10" fill="rgba(212,168,67,.18)"/>
+          <circle cx="183" cy="125" r="5" fill="#D4A843"/>
+          <circle cx="183" cy="125" r="13" fill="none" stroke="#D4A843" stroke-width="1" class="ping1"/>
+          <circle cx="183" cy="125" r="22" fill="none" stroke="#D4A843" stroke-width=".5" opacity=".4" class="ping2"/>
+          <text x="196" y="119" fill="#D4A843" font-size="8" font-family="'Playfair Display',serif">Yamoussoukro</text>
+          <text x="196" y="130" fill="rgba(212,168,67,.6)" font-size="6" font-family="sans-serif">Basilica · 6.8160°N</text>
+          <!-- Compass -->
+          <g transform="translate(350,40)">
+            <circle cx="0" cy="0" r="19" fill="rgba(15,17,28,.85)" stroke="rgba(212,168,67,.3)" stroke-width="1"/>
+            <path d="M0,-15 L3,-4 L0,-7 L-3,-4 Z" fill="#D4A843"/>
+            <path d="M0,15 L3,4 L0,7 L-3,4 Z" fill="rgba(212,168,67,.4)"/>
+            <text x="-2.5" y="-17" fill="#D4A843" font-size="6" font-family="sans-serif">N</text>
+          </g>
+          <!-- Scale -->
+          <line x1="20" y1="270" x2="80" y2="270" stroke="rgba(212,168,67,.5)" stroke-width="2"/>
+          <line x1="20" y1="265" x2="20" y2="275" stroke="rgba(212,168,67,.5)" stroke-width="1.5"/>
+          <line x1="80" y1="265" x2="80" y2="275" stroke="rgba(212,168,67,.5)" stroke-width="1.5"/>
+          <text x="34" y="285" fill="rgba(212,168,67,.6)" font-size="7" font-family="sans-serif">500 km</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <svg width="26" height="38" viewBox="0 0 26 38" fill="none" style="margin:0 auto 1.4rem;display:block;opacity:.6;">
+    <rect x="11" y="0" width="4" height="38" rx="2" fill="#D4A843"/>
+    <rect x="0" y="11" width="26" height="4" rx="2" fill="#D4A843"/>
+  </svg>
+  <div class="ft-logo">Basilica of Our Lady of Peace</div>
+  <div class="ft-tag">Yamoussoukro · Côte d'Ivoire · Est. 1985</div>
+  <nav class="ft-links">
+    <a href="#history">History</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#visit">Visit</a>
+  </nav>
+  <div class="ft-sep"></div>
+  <p class="ft-copy">© 2026 Basilica of Our Lady of Peace, Yamoussoukro. The largest church on Earth by area.</p>
+</footer>
+
+<script>
+// ── Navbar scroll effect ──
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+// ── Floating particles ──
+const pc = document.getElementById('particles');
+for (let i = 0; i < 38; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random() * 3 + 1;
+  p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:${Math.random()*10}s;`;
+  pc.appendChild(p);
+}
+
+// ── Animated stats counters ──
+const statEls = document.querySelectorAll('.stat-num[data-target]');
+const counterObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = +el.dataset.target;
+    const suffix = el.dataset.suffix;
+    counterObs.unobserve(el);
+    const dur = 1800, start = performance.now();
+    const tick = now => {
+      const p = Math.min((now - start) / dur, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(ease * target).toLocaleString() + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}, { threshold: 0.5 });
+statEls.forEach(el => counterObs.observe(el));
+
+// ── Three.js 3D Dome Scene ──
+(function() {
+  const canvas = document.getElementById('hero-canvas');
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+  camera.position.set(0, 1, 6);
+
+  scene.add(new THREE.AmbientLight(0xffeebb, 0.4));
+  const goldLight = new THREE.PointLight(0xD4A843, 3, 20);
+  goldLight.position.set(3, 5, 3);
+  scene.add(goldLight);
+  const rimLight = new THREE.PointLight(0x8866aa, 1.5, 15);
+  rimLight.position.set(-4, 2, -2);
+  scene.add(rimLight);
+  const dirLight = new THREE.DirectionalLight(0xfff8e8, 1.2);
+  dirLight.position.set(0, 10, 5);
+  scene.add(dirLight);
+
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xD4A843, metalness: 0.85, roughness: 0.18 });
+  const whiteMat = new THREE.MeshStandardMaterial({ color: 0xf5f0e8, metalness: 0.05, roughness: 0.55 });
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  // Platform
+  group.add(Object.assign(new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.6, 0.18, 32), whiteMat), { position: new THREE.Vector3(0, -1.5, 0) }));
+  // Steps
+  for (let i = 0; i < 3; i++) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(2.1 - i*.35, 2.2 - i*.35, 0.12, 32), whiteMat);
+    m.position.y = -1.38 + i*.12; group.add(m);
+  }
+  // Nave body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 1.6), whiteMat);
+  body.position.y = -0.6; group.add(body);
+  // Columns
+  for (let side = -1; side <= 1; side += 2) {
+    for (let i = 0; i < 5; i++) {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.07, 1.2, 10), whiteMat);
+      col.position.set(side * 1.25, -0.3, -0.8 + i * 0.4); group.add(col);
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.16), goldMat);
+      cap.position.set(side * 1.25, 0.3, -0.8 + i * 0.4); group.add(cap);
+    }
+  }
+  // Drum
+  const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.8, 0.5, 32), whiteMat);
+  drum.position.y = 0.25; group.add(drum);
+  // Dome
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.75, 32, 32, 0, Math.PI*2, 0, Math.PI/2), whiteMat);
+  dome.position.y = 0.5; group.add(dome);
+  // Dome ribs
+  for (let i = 0; i < 12; i++) {
+    const r = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.012, 6, 20, Math.PI/2), goldMat);
+    r.position.y = 0.5; r.rotation.y = (i/12)*Math.PI*2; r.rotation.x = Math.PI/2; group.add(r);
+  }
+  // Lantern + cross
+  const lant = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.4, 16), whiteMat);
+  lant.position.y = 1.25; group.add(lant);
+  const cv = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.04), goldMat);
+  cv.position.y = 1.7; group.add(cv);
+  const ch = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.04, 0.04), goldMat);
+  ch.position.y = 1.82; group.add(ch);
+  // Bell towers
+  [[−1,−0.3],[1,−0.3],[−1,0.3],[1,0.3]].forEach(([x,z]) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.22, 1.4, 16), whiteMat);
+    t.position.set(x, -0.1, z); group.add(t);
+    const tc = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 16), goldMat);
+    tc.position.set(x, 0.85, z); group.add(tc);
+  });
+  // Particles
+  const pGeo = new THREE.BufferGeometry();
+  const pos = new Float32Array(120 * 3);
+  for (let i = 0; i < 120; i++) {
+    pos[i*3]   = (Math.random()-.5)*10;
+    pos[i*3+1] = (Math.random()-.5)*8;
+    pos[i*3+2] = (Math.random()-.5)*10;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color:0xD4A843, size:.03, transparent:true, opacity:.55 }));
+  scene.add(particles);
+
+  let frame = 0;
+  (function animate() {
+    requestAnimationFrame(animate);
+    frame++;
+    const t = frame * .005;
+    group.rotation.y = t * .4;
+    group.position.y = Math.sin(t * .7) * .06;
+    goldLight.position.x = Math.sin(t) * 4;
+    goldLight.position.z = Math.cos(t) * 4;
+    particles.rotation.y = t * .08;
+    renderer.render(scene, camera);
+  })();
+
+  window.addEventListener('resize', () => {
+    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
+</script>
+</body>
+</html>
